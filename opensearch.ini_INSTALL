@@ -13,7 +13,7 @@ version = 3.0
 wsdl = opensearch.wsdl
 
 ; in_house_domain may use ?ShowInfo and use create_sample form
-; in_house_domain = .mycompany.dk
+in_house_domain = @MY_DOMAIN@
 
 ; set to TRUE to expose the create_sample form
 ;show_samples = 1
@@ -58,7 +58,7 @@ missing_record = <?xml version='1.0' encoding='UTF-8'?><ting:container xmlns:tin
 
 
 ; default repository
-default_repository = repos1
+default_repository = @REPOSITORY_NAME@
 
 ; url to solr and fedorainterface
 ; set url's for fedora_get_raw, fedora_get_rels_ext and fedora_get_object_profile
@@ -68,37 +68,31 @@ default_repository = repos1
 ; - fedora_get_object_profile: url to get rels_ext_record from fedora
 ; - search_profile_version: 2 (using submitter and original_format) or 3 (using rec.collectionIdentifier)
 
-repository[repos1][solr] = http://someserver.dbc.dk:8080/solr-3.4.0/select
-repository[repos1][fedora_get_raw] = http://someserver.dbc.dk:9080/fedora/objects/%s/datastreams/commonData/content
-repository[repos1][fedora_get_rels_ext] = http://someserver.dbc.dk:9080/fedora/objects/%s/datastreams/RELS-SYS/content
-repository[repos1][fedora_get_rels_addi] = http://someserver.dbc.dk:9080/fedora/objects/%s/datastreams/RELS-EXT/content
-repository[repos1][fedora_get_object_profile] = http://someserver.dbc.dk:8080/fedora/objects/%s/?format=xml
-repository[repos1][fedora_get_datastreams] = http://someserver.dbc.dk:9080/fedora/objects/%s/objectXML
-repository[repos1][fedora_get_object_profile] = http://someserver.dbc.dk:8080/fedora/objects/%s/?format=xml
-repository[repos1][search_profile_version] = 3
-
-repository[repos2][solr] = http://anotherserver:8080/apache-solr-1.4-dev/select
-repository[repos2][fedora_get_raw] = http://anotherserver.dbc.dk:8080/fedora/get/%s/originalData.0
-repository[repos2][fedora_get_rels_ext] = http://anotherserver.dbc.dk:8080/fedora/get/%s/RELS-EXT
-repository[repos2][fedora_get_object_profile] = http://anotherserver.dbc.dk:8080/fedora/objects/%s/?format=xml
-
+repository[@REPOSITORY_NAME@][solr] = @SOLR@
+repository[@REPOSITORY_NAME@][fedora_get_raw] = @FEDORA_GET_RAW@
+repository[@REPOSITORY_NAME@][fedora_get_rels_ext] = @FEDORA_GET_RELS_EXT@
+repository[@REPOSITORY_NAME@][fedora_get_rels_addi] = @FEDORA_GET_RELS_ADDI@
+repository[@REPOSITORY_NAME@][fedora_get_object_profile] = @FEDORA_GET_OBJECT_PROFILE@
+repository[@REPOSITORY_NAME@][fedora_get_datastreams] = @FEDORA_GET_DATASTREAMS@
+repository[@REPOSITORY_NAME@][fedora_get_object_profile] = @FEDORA_GET_OBJECT_PROFILE@
+repository[@REPOSITORY_NAME@][search_profile_version] = 3
 
 ; memcache
-; cache_host = localhost
-; cache_port = 11211
-; cache_expire = 600
+cache_host = localhost
+cache_port = 11211
+cache_expire = 600
 
 ; memcache search profile - defaults to cache_host, cache_port, cache_expire if not defined
-;profile_cache_host = localhost
-;profile_cache_port = 11211
+profile_cache_host = localhost
+profile_cache_port = 11211
 profile_cache_expire = 60
 
 ; search profile service end point
-open_agency = http://openagency.addi.dk/1.2/?action=openSearchProfile&agencyId=%s&profileVersion=%s
+open_agency = @OPEN_AGENCY@
 
 ; open format
 ; address to openFormat service
-ws_open_format_uri = http://openformat.dbc.dk/0.1/
+ws_open_format_uri = @OPEN_FORMAT@
 ; formats supported by openFormat and possible name mapping
 ; open_format[openSearch_format_name][format] = openFormat format name
 open_format[bibliotekdkWorkDisplay][format] = bibliotekdkWorkDisplay
@@ -107,8 +101,8 @@ open_format[ris][format] = ris
 
 
 ; default search_profile setting
-;agency_fallback = 100200
-;profile_fallback = test
+agency_fallback = @AGENCY_FALLBACK@
+profile_fallback = @AGENCY_PROFILE_FALLBACK@
 
 ; raw_index - old feature, do not include
 ;raw_index[] = facet.
@@ -216,7 +210,7 @@ sort[random] = random
 ;   DEBUG   - debugging info
 ;   Z3959   - calls to z3950 services
 ;   OCI     - oracle
-verbose = WARNING+ERROR+FATAL+STAT+TIMER+TRACE+DEBUG+Z3950+OCI
+verbose = @VERBOSE_LEVEL@
 
 ; format for automatic timer dump %s is the soap-action used
 dump_timer = opensearch(%s)
@@ -240,9 +234,8 @@ dump_timer = opensearch(%s)
 ; aaa_ip_rights[group-identifier][ressource][<named ressource>] = right to <named ressource>
 ; aaa_ip_rights[group-identifier][ressource][<named ressource 2>] = right to <named ressource 2>
 ;
-;aaa_ip_rights[dbc][ip_list] = 172.16.0.0-172.31.255.255;193.111.162.0-193.111.162.255
-;aaa_ip_rights[dbc][ressource][opensearch] = 500
-
+aaa_ip_rights[dbc][ip_list] = 172.16.0.0-172.31.255.255;193.111.162.0-193.111.162.255
+aaa_ip_rights[dbc][ressource][opensearch] = 500
 
 [rest]
 ; REST parameters for SOAPAction
