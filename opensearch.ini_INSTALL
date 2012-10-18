@@ -7,7 +7,7 @@
 ;service_http_error = HTTP/1.1 410 Gone
 ;service_http_error = HTTP/1.0 503 Service Unavailable
 
-version = 2.3
+version = 3.0
 
 ; wsdl for service
 wsdl = opensearch.wsdl
@@ -61,14 +61,12 @@ missing_record = <?xml version='1.0' encoding='UTF-8'?><ting:container xmlns:tin
 default_repository = repos1
 
 ; url to solr and fedorainterface
-; work_format = 2 fedora-object version bib.dk i.e. using units
 ; set url's for fedora_get_raw, fedora_get_rels_ext and fedora_get_object_profile
 ; - solr: url to solr-server
 ; - fedora_get_raw: url to get raw record from fedora
 ; - fedora_get_rels_ext: url to get rels_ext_record from fedora
 ; - fedora_get_object_profile: url to get rels_ext_record from fedora
 ; - search_profile_version: 2 (using submitter and original_format) or 3 (using rec.collectionIdentifier)
-; - work_format: 1 or 2 (using unit's)
 
 repository[repos1][solr] = http://someserver.dbc.dk:8080/solr-3.4.0/select
 repository[repos1][fedora_get_raw] = http://someserver.dbc.dk:9080/fedora/objects/%s/datastreams/commonData/content
@@ -78,7 +76,6 @@ repository[repos1][fedora_get_object_profile] = http://someserver.dbc.dk:8080/fe
 repository[repos1][fedora_get_datastreams] = http://someserver.dbc.dk:9080/fedora/objects/%s/objectXML
 repository[repos1][fedora_get_object_profile] = http://someserver.dbc.dk:8080/fedora/objects/%s/?format=xml
 repository[repos1][search_profile_version] = 3
-repository[repos1][work_format] = 2
 
 repository[repos2][solr] = http://anotherserver:8080/apache-solr-1.4-dev/select
 repository[repos2][fedora_get_raw] = http://anotherserver.dbc.dk:8080/fedora/get/%s/originalData.0
