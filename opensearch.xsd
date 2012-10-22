@@ -140,6 +140,9 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:sequence>
 				<xs:element ref="os:resultPosition"/>
 				<xs:element ref="os:numberOfObjects"/>
+				<xs:element ref="os:title" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="os:creator" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="os:language" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="os:object" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
@@ -157,6 +160,11 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="creationDate" type="xs:date">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">The creation date of the original record or the object.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="creator" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Creator of the work</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="error" type="xs:string">
@@ -297,9 +305,14 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">Whether to include marcXchange record if available. Default is false.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
-	<xs:element name="queryLanguage" type="os:queryLanguageType">
+	<xs:element name="language" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="en">Here you can specify the language of the user.</xs:documentation>
+			<xs:documentation xml:lang="en">Language of the work</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="lendingLibraries" type="xs:int">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Number of libraries that will lend the material.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="linkObject">
@@ -317,6 +330,11 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="linkTo" type="os:linkToType">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">What the link point so, e.g. a website.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="materialAccessType" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">If the material is available online or as a physical material</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="more" type="xs:boolean">
@@ -349,8 +367,13 @@ You should have received a copy of the GNU Affero General Public License along w
 					<xs:element ref="docbook:article"/>
 				</xs:choice>
 				<xs:element ref="os:identifier"/>
+				<xs:element ref="os:type" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="os:workType" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="os:materialAccessType" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="os:partOf" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="os:creationDate" minOccurs="0"/>
 				<xs:element ref="os:holdingsCount" minOccurs="0"/>
+				<xs:element ref="os:lendingLibraries" minOccurs="0"/>
 				<xs:element ref="os:relations" minOccurs="0"/>
 				<xs:element ref="os:formatsAvailable"/>
 				<xs:element ref="os:queryResultExplanation" minOccurs="0"/>
@@ -375,6 +398,11 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="parsedQueryString" type="xs:string">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">The parsed version of the query string sent to the search engine. Used for query debugging.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="partOf" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Description of the material that an article is part of</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="passwordAut" type="xs:string">
@@ -410,6 +438,11 @@ You should have received a copy of the GNU Affero General Public License along w
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
+	<xs:element name="queryLanguage" type="os:queryLanguageType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Here you can specify the language of the user.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
 	<xs:element name="queryResultExplanation" type="xs:string">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Description of the result from the search engine. Used for query debugging.</xs:documentation>
@@ -435,7 +468,7 @@ You should have received a copy of the GNU Affero General Public License along w
 				<xs:element ref="os:relationUri" minOccurs="0"/>
 				<xs:choice>
 					<xs:element ref="os:linkObject"/>
-				  <xs:element ref="os:relationObject"/>
+					<xs:element ref="os:relationObject"/>
 				</xs:choice>
 			</xs:sequence>
 		</xs:complexType>
@@ -556,9 +589,19 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">How much the final score of the query will be influenced by the scores of the lower scoring fields compared to the highest scoring field.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
+	<xs:element name="title" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Title of the work</xs:documentation>
+		</xs:annotation>
+	</xs:element>
 	<xs:element name="time" type="xs:decimal">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Number of seconds used in the service</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="type" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Material type</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="userIdAut" type="xs:string">
@@ -569,6 +612,11 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="weight" type="xs:int">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">...</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="workType" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Type of work</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:simpleType name="accessType">
@@ -633,18 +681,18 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">The object formats that you can choose from to be returned by the service.</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
+			<xs:enumeration value="briefWorkDisplay"/>
 			<xs:enumeration value="dkabm"/>
 			<xs:enumeration value="docbook"/>
 			<xs:enumeration value="marcxchange"/>
-			<xs:enumeration value="opensearchobject"/>
 			<xs:enumeration value="bibliotekdkWorkDisplay"/>
-        <xs:enumeration value="briefDisplayHtml"/>
-        <xs:enumeration value="fullDisplayHtml"/>
-        <xs:enumeration value="workDisplayHtml"/>
-        <xs:enumeration value="briefDisplay"/>
-        <xs:enumeration value="fullDisplay"/>
-        <xs:enumeration value="refWorks"/>
-        <xs:enumeration value="ris"/>
+			<xs:enumeration value="briefDisplayHtml"/>
+			<xs:enumeration value="fullDisplayHtml"/>
+			<xs:enumeration value="workDisplayHtml"/>
+			<xs:enumeration value="briefDisplay"/>
+			<xs:enumeration value="fullDisplay"/>
+			<xs:enumeration value="refWorks"/>
+			<xs:enumeration value="ris"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="outputTypeType">
