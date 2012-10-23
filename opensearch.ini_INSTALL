@@ -96,6 +96,7 @@ ws_open_format_uri = @OPEN_FORMAT@
 ; formats supported by openFormat and possible name mapping
 ; open_format[openSearch_format_name][format] = openFormat format name
 open_format[bibliotekdkWorkDisplay][format] = bibliotekdkWorkDisplay
+open_format[briefWorkDisplay][format] = briefWorkDisplay
 open_format[refWorks][format] = refWorks
 open_format[ris][format] = ris
 
