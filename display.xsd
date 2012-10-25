@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ds="http://oss.dbc.dk/ns/display" targetNamespace="http://oss.dbc.dk/ns/display">
+	<xs:annotation>
+		<xs:documentation>
+      Display format for bibliotek.dk.
+    </xs:documentation>
+	</xs:annotation>
+	<xs:element name="accessType" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">If the material is available online or as a physical material</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="creator" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Creator of the work</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="language" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Language of the work</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="partOf" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Description of the material that an article is part of</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="title" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Title of the work</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="type" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Material type</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="workType" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Type of work</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+</xs:schema>

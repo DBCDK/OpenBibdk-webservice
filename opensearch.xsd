@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:os="http://oss.dbc.dk/ns/opensearch" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dkabm="http://biblstandard.dk/abm/namespace/dkabm/" xmlns:ISO639-2="http://lcweb.loc.gov/standards/iso639-2/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:ac="http://biblstandard.dk/ac/namespace/" xmlns:dkdcplus="http://biblstandard.dk/abm/namespace/dkdcplus/" xmlns:oss="http://oss.dbc.dk/ns/osstypes" xmlns:marcx="info:lc/xmlns/marcxchange-v1" xmlns:docbook="http://docbook.org/ns/docbook" targetNamespace="http://oss.dbc.dk/ns/opensearch" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:os="http://oss.dbc.dk/ns/opensearch" xmlns:ds="http://oss.dbc.dk/ns/display" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dkabm="http://biblstandard.dk/abm/namespace/dkabm/" xmlns:ISO639-2="http://lcweb.loc.gov/standards/iso639-2/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:ac="http://biblstandard.dk/ac/namespace/" xmlns:dkdcplus="http://biblstandard.dk/abm/namespace/dkdcplus/" xmlns:oss="http://oss.dbc.dk/ns/osstypes" xmlns:marcx="info:lc/xmlns/marcxchange-v1" xmlns:docbook="http://docbook.org/ns/docbook" targetNamespace="http://oss.dbc.dk/ns/opensearch" elementFormDefault="qualified">
 	<xs:annotation>
 		<xs:documentation xml:lang="en">Opensearch Service</xs:documentation>
 		<xs:documentation xml:lang="en">This XML Schema describes the data and structure of data of the Opensearch search service.</xs:documentation>
@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:import namespace="http://biblstandard.dk/abm/namespace/dkabm/" schemaLocation="dkabm.xsd"/>
 	<xs:import namespace="info:lc/xmlns/marcxchange-v1" schemaLocation="marcxchange-1-1.xsd"/>
 	<xs:import namespace="http://docbook.org/ns/docbook" schemaLocation="docbook.xsd"/>
+	<xs:import namespace="http://oss.dbc.dk/ns/display" schemaLocation="display.xsd"/>
 	<xs:element name="getObjectRequest">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Request for a specific object.</xs:documentation>
@@ -140,9 +141,9 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:sequence>
 				<xs:element ref="os:resultPosition"/>
 				<xs:element ref="os:numberOfObjects"/>
-				<xs:element ref="os:title" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="os:creator" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="os:language" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ds:title" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ds:creator" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ds:language" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="os:object" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
@@ -160,11 +161,6 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="creationDate" type="xs:date">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">The creation date of the original record or the object.</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="creator" type="xs:string">
-		<xs:annotation>
-			<xs:documentation xml:lang="en">Creator of the work</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="error" type="xs:string">
@@ -305,11 +301,6 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">Whether to include marcXchange record if available. Default is false.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
-	<xs:element name="language" type="xs:string">
-		<xs:annotation>
-			<xs:documentation xml:lang="en">Language of the work</xs:documentation>
-		</xs:annotation>
-	</xs:element>
 	<xs:element name="lendingLibraries" type="xs:int">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Number of libraries that will lend the material.</xs:documentation>
@@ -330,11 +321,6 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="linkTo" type="os:linkToType">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">What the link point so, e.g. a website.</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="materialAccessType" type="xs:string">
-		<xs:annotation>
-			<xs:documentation xml:lang="en">If the material is available online or as a physical material</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="more" type="xs:boolean">
@@ -367,10 +353,10 @@ You should have received a copy of the GNU Affero General Public License along w
 					<xs:element ref="docbook:article"/>
 				</xs:choice>
 				<xs:element ref="os:identifier"/>
-				<xs:element ref="os:type" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="os:workType" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="os:materialAccessType" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="os:partOf" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ds:type" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ds:workType" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ds:accessType" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="ds:partOf" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="os:creationDate" minOccurs="0"/>
 				<xs:element ref="os:holdingsCount" minOccurs="0"/>
 				<xs:element ref="os:lendingLibraries" minOccurs="0"/>
@@ -398,11 +384,6 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="parsedQueryString" type="xs:string">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">The parsed version of the query string sent to the search engine. Used for query debugging.</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="partOf" type="xs:string">
-		<xs:annotation>
-			<xs:documentation xml:lang="en">Description of the material that an article is part of</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="passwordAut" type="xs:string">
@@ -589,19 +570,9 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">How much the final score of the query will be influenced by the scores of the lower scoring fields compared to the highest scoring field.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
-	<xs:element name="title" type="xs:string">
-		<xs:annotation>
-			<xs:documentation xml:lang="en">Title of the work</xs:documentation>
-		</xs:annotation>
-	</xs:element>
 	<xs:element name="time" type="xs:decimal">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Number of seconds used in the service</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="type" type="xs:string">
-		<xs:annotation>
-			<xs:documentation xml:lang="en">Material type</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="userIdAut" type="xs:string">
@@ -612,11 +583,6 @@ You should have received a copy of the GNU Affero General Public License along w
 	<xs:element name="weight" type="xs:int">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">...</xs:documentation>
-		</xs:annotation>
-	</xs:element>
-	<xs:element name="workType" type="xs:string">
-		<xs:annotation>
-			<xs:documentation xml:lang="en">Type of work</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:simpleType name="accessType">
