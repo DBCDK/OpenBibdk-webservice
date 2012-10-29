@@ -149,7 +149,7 @@ class openSearch extends webServiceServer {
       $rank = 'rank_none';
     }
 
-    $format = $this->set_format($param->objectFormat, $this->config->get_value('open_format', 'setup'));
+    $format = $this->set_format($param->objectFormat, $this->config->get_value('open_format', 'setup'), $this->config->get_value('solr_format', 'setup'));
     
     if ($unsupported) return $ret_error;
 
@@ -222,9 +222,7 @@ class openSearch extends webServiceServer {
         $facet_q .= '&facet.field=' . $param->facets->_value->facetName->_value;
     }
 
-    verbose::log(TRACE, 'CQL to SOLR: ' . $param->query->_value . ' -> ' . $solr_query['edismax']);
-    if ($solr_query['edismax'])
-      verbose::log(TRACE, 'CQL to EDISMAX: ' . $param->query->_value . ' -> ' . $solr_query['edismax']);
+    verbose::log(TRACE, 'CQL to EDISMAX: ' . $param->query->_value . ' -> ' . $solr_query['edismax']);
 
     $debug_query = $this->xs_boolean($param->queryDebug->_value);
 
@@ -390,7 +388,7 @@ class openSearch extends webServiceServer {
     if ($use_work_collection && ($this->xs_boolean($param->allObjects->_value) || $filter_agency)) {
       $add_query[$block_idx] = '';
       foreach ($work_ids as $w_no => $w) {
-        if (count($w) > 1) {
+        if (count($w) > 1 || $format['found_solr_format']) {
           if ($add_query[$block_idx] && ($no_bool + count($w)) > MAX_QUERY_ELEMENTS) {
             $block_idx++;
             $no_bool = 0;
@@ -401,7 +399,7 @@ class openSearch extends webServiceServer {
           }
         }
       }
-      if (!empty($add_query[0]) || count($add_query) > 1) {    // use post here because query can be very long
+      if (!empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {    // use post here because query can be very long
         $which_rec_id = 'unit.id';
         foreach ($add_query as $add_idx => $add_q) {
           if (!$this->xs_boolean($param->allObjects->_value)) {
@@ -418,13 +416,20 @@ class openSearch extends webServiceServer {
             return $ret_error;
           }
           // need to remove unwanted object from work_ids
+          if ($format['found_solr_format']) {
+            foreach ($format as $f) {
+              if ($f[is_solr_format]) {
+                $add_fl .= ',' . $f['format_name'];
+              }
+            }
+          }
           $post_query = 'wt=phps' .
                        '&q=' . urlencode($q) .
                        '&fq=' . $filter_q .
                        '&start=0' .
                        '&rows=50000' .
                        '&defType=edismax' .
-                       '&fl=fedoraPid,unit.id';
+                       '&fl=unit.id' . $add_fl;
           if ($rank_qf) $post_query .= '&qf=' . $rank_qf;
           if ($rank_pf) $post_query .= '&pf=' . $rank_pf;
           if ($rank_tie) $post_query .= '&tie=' . $rank_tie;
@@ -542,7 +547,14 @@ class openSearch extends webServiceServer {
     if ($format['found_open_format']) {
       $this->format_records($collections, $format);
     }
+    if ($format['found_solr_format']) {
+      $this->format_solr($collections, $format, $solr_2_arr, $relation_cache);
+    }
+    $this->remove_unselected_formats($collections, $format);
 
+//var_dump($solr_2_arr);
+//var_dump($relation_cache);
+//die();
     if ($_REQUEST['work'] == 'debug') {
       echo "returned_work_ids: \n";
       print_r($work_ids);
@@ -622,7 +634,7 @@ class openSearch extends webServiceServer {
       }
     }
 
-    $format = $this->set_format($param->objectFormat, $this->config->get_value('open_format', 'setup'));
+    $format = $this->set_format($param->objectFormat, $this->config->get_value('open_format', 'setup'), $this->config->get_value('solr_format', 'setup'));
 
     $this->cache = new cache($this->config->get_value('cache_host', 'setup'),
                              $this->config->get_value('cache_port', 'setup'),
@@ -673,8 +685,7 @@ class openSearch extends webServiceServer {
       unset($o);
     }
 
-// FVS format
-    if ($format['found_open_format']) {
+    if ($format['found_open_format'] || $format['found_solr_format']) {
       $this->format_records($collections, $format);
     }
 
@@ -695,7 +706,7 @@ class openSearch extends webServiceServer {
 
   /*******************************************************************************/
 
-  private function set_format($objectFormat, $open_format) {
+  private function set_format($objectFormat, $open_format, $solr_format) {
     if (is_array($objectFormat))
       $help = $objectFormat;
     elseif (empty($objectFormat->_value))
@@ -707,11 +718,15 @@ class openSearch extends webServiceServer {
         $ret[$of->_value] = array('user_selected' => TRUE, 'is_open_format' => TRUE, 'format_name' => $open_format[$of->_value]['format']);
         $ret['found_open_format'] = TRUE;
       }
+      elseif ($solr_format[$of->_value]) {
+        $ret[$of->_value] = array('user_selected' => TRUE, 'is_solr_format' => TRUE, 'format_name' => $solr_format[$of->_value]['format']);
+        $ret['found_solr_format'] = TRUE;
+      }
       else {
-        $ret[$of->_value] = array('user_selected' => TRUE, 'is_open_format' => FALSE);
+        $ret[$of->_value] = array('user_selected' => TRUE, 'is_solr_format' => FALSE);
       }
     }
-    if ($ret['found_open_format']) {
+    if ($ret['found_open_format'] || $ret['found_solr_format']) {
       if (empty($ret['dkabm']))
         $ret['dkabm'] = array('user_selected' => FALSE, 'is_open_format' => FALSE);
       if (empty($ret['marcxchange']))
@@ -739,6 +754,40 @@ class openSearch extends webServiceServer {
     if ($holds) $holds--;
 
     return $holds;
+  }
+
+  /** \brief Pick tags from solr result and create format
+   *
+   */
+  private function format_solr(&$collections, $format, $solr, &$work_struct) {
+    $solr_display_ns = $this->xmlns['ds'];
+    $this->watch->start('solr_format_solr');
+    foreach ($format as $format_name => $format_arr) {
+      if ($format_arr['is_solr_format']) {
+        $format_tags = explode(',', $format_arr['format_name']);
+        foreach ($collections as $idx => &$c) {
+          $rec_no = $c->_value->collection->_value->resultPosition->_value;
+          $unit_leader = $work_struct[$rec_no][0];
+          foreach ($solr[0]['response']['docs'] as $solr_doc) {
+            if (in_array($unit_leader, $solr_doc['unit.id'])) {
+              foreach ($format_tags as $format_tag) {
+                if ($solr_doc[$format_tag]) {
+                  list($tag_NS, $tag_value) = explode('.', $format_tag);
+                  $solr_info->$tag_value->_namespace = $solr_display_ns;
+                  $solr_info->$tag_value->_value = $solr_doc[$format_tag][0];
+                }
+              }
+              break;
+            }
+          }
+// need to loop thru objects to put data correct
+          $c->_value->formattedCollection->_value->$format_name->_namespace = $solr_display_ns;
+          $c->_value->formattedCollection->_value->$format_name->_value = $solr_info;
+          unset($solr_doc);
+        }
+      }
+    }
+    $this->watch->stop('format_solr');
   }
 
   /** \brief
@@ -776,8 +825,14 @@ class openSearch extends webServiceServer {
         }
       }
     }
+    $this->watch->stop('format');
+  }
+
+  /** \brief
+   *
+   */
+  private function remove_unselected_formats(&$collections, &$format) {
     foreach ($collections as $idx => &$c) {
-  // remove unwanted structures
       foreach ($c->_value->collection->_value->object as &$o) {
         if (!$format['dkabm']['user_selected'])
           unset($o->_value->record);
@@ -785,7 +840,6 @@ class openSearch extends webServiceServer {
           unset($o->_value->collection);
       }
     }
-    $this->watch->stop('format');
   }
 
   /** \brief
@@ -845,6 +899,7 @@ class openSearch extends webServiceServer {
    */
   private function get_fedora($uri, $fpid, &$rec, $mandatory=TRUE) {
     $record_uri =  sprintf($uri, $fpid);
+    verbose::log(STAT, 'get_fedora: ' . $record_uri);
     if (DEBUG_ON) echo 'Fetch record: /' . $record_uri . "/\n";
     if ($this->cache && $rec = $this->cache->get($record_uri)) {
       $this->number_of_fedora_cached++;
