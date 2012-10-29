@@ -5,6 +5,22 @@
       Display format for bibliotek.dk.
     </xs:documentation>
 	</xs:annotation>
+    <xs:element name="indexDisplay">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">Request for a specific object.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ds:accessType" minOccurs="0"/>
+                <xs:element ref="ds:creator" minOccurs="0"/>
+                <xs:element ref="ds:language" minOccurs="0"/>
+                <xs:element ref="ds:partOf" minOccurs="0"/>
+                <xs:element ref="ds:title" minOccurs="0"/>
+                <xs:element ref="ds:type" minOccurs="0"/>
+                <xs:element ref="ds:workType" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 	<xs:element name="accessType" type="xs:string">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">If the material is available online or as a physical material</xs:documentation>
