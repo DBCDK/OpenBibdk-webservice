@@ -548,7 +548,7 @@ class openSearch extends webServiceServer {
       $this->format_records($collections, $format);
     }
     if ($format['found_solr_format']) {
-      $this->format_solr($collections, $format, $solr_2_arr, $relation_cache);
+      $this->format_solr($collections, $format, $solr_2_arr, $relation_cache, $param->collectionType->_value == 'work-1');
     }
     $this->remove_unselected_formats($collections, $format);
 
@@ -759,31 +759,38 @@ class openSearch extends webServiceServer {
   /** \brief Pick tags from solr result and create format
    *
    */
-  private function format_solr(&$collections, $format, $solr, &$work_struct) {
+  private function format_solr(&$collections, $format, $solr, &$work_struct, $work_1) {
     $solr_display_ns = $this->xmlns['ds'];
-    $this->watch->start('solr_format_solr');
+    $this->watch->start('format_solr');
     foreach ($format as $format_name => $format_arr) {
       if ($format_arr['is_solr_format']) {
         $format_tags = explode(',', $format_arr['format_name']);
         foreach ($collections as $idx => &$c) {
           $rec_no = $c->_value->collection->_value->resultPosition->_value;
-          $unit_leader = $work_struct[$rec_no][0];
-          foreach ($solr[0]['response']['docs'] as $solr_doc) {
-            if (in_array($unit_leader, $solr_doc['unit.id'])) {
-              foreach ($format_tags as $format_tag) {
-                if ($solr_doc[$format_tag]) {
-                  list($tag_NS, $tag_value) = explode('.', $format_tag);
-                  $solr_info->$tag_value->_namespace = $solr_display_ns;
-                  $solr_info->$tag_value->_value = $solr_doc[$format_tag][0];
+          foreach ($work_struct[$rec_no] as $mani_no => $unit_no) {
+            foreach ($solr[0]['response']['docs'] as $solr_doc) {
+              if (in_array($unit_no, $solr_doc['unit.id'])) {
+                foreach ($format_tags as $format_tag) {
+                  if ($solr_doc[$format_tag]) {
+                    list($tag_NS, $tag_value) = explode('.', $format_tag);
+                    $mani->_namespace = $solr_display_ns;
+                    $mani->_value->$tag_value->_namespace = $solr_display_ns;
+                    $mani->_value->$tag_value->_value = $solr_doc[$format_tag][0];
+                  }
                 }
+                break;
               }
+            }
+            $manifestation->manifestation[] = $mani;
+            unset($mani);
+            if ($work_1) {
               break;
             }
           }
 // need to loop thru objects to put data correct
           $c->_value->formattedCollection->_value->$format_name->_namespace = $solr_display_ns;
-          $c->_value->formattedCollection->_value->$format_name->_value = $solr_info;
-          unset($solr_doc);
+          $c->_value->formattedCollection->_value->$format_name->_value = $manifestation;
+          unset($manifestation);
         }
       }
     }
