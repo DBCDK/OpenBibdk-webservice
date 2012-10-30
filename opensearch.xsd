@@ -141,9 +141,6 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:sequence>
 				<xs:element ref="os:resultPosition"/>
 				<xs:element ref="os:numberOfObjects"/>
-				<xs:element ref="ds:title" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ds:creator" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ds:language" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="os:object" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
@@ -353,10 +350,6 @@ You should have received a copy of the GNU Affero General Public License along w
 					<xs:element ref="docbook:article"/>
 				</xs:choice>
 				<xs:element ref="os:identifier"/>
-				<xs:element ref="ds:type" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ds:workType" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ds:accessType" minOccurs="0" maxOccurs="unbounded"/>
-				<xs:element ref="ds:partOf" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="os:creationDate" minOccurs="0"/>
 				<xs:element ref="os:holdingsCount" minOccurs="0"/>
 				<xs:element ref="os:lendingLibraries" minOccurs="0"/>
