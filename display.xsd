@@ -6,6 +6,9 @@
     </xs:documentation>
 	</xs:annotation>
     <xs:element name="indexDisplay">
+      <xs:element ref="ds:manifestation" maxOccurs="unbounded"/>
+    </xs:element>
+    <xs:element name="manifestation">
         <xs:annotation>
             <xs:documentation xml:lang="en">Request for a specific object.</xs:documentation>
         </xs:annotation>
