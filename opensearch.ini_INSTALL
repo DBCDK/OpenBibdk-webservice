@@ -87,6 +87,9 @@ profile_cache_host = localhost
 profile_cache_port = 11211
 profile_cache_expire = 60
 
+; holding db - return number of items in stock and number of items available for lending
+holdings_db = @HOLDINGS_DB@
+
 ; search profile service end point
 open_agency = @OPEN_AGENCY@
 
