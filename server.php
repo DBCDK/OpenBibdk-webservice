@@ -177,7 +177,7 @@ class openSearch extends webServiceServer {
     }
     $step_value = min($param->stepValue->_value, MAX_COLLECTIONS);
     $use_work_collection |= $sort_type[$sort] == 'random';
-    $key_relation_cache = md5($param->query->_value . $repository_name . $filter_agency .
+    $key_work_struct = md5($param->query->_value . $repository_name . $filter_agency .
                               $use_work_collection .  $sort . $rank . $boost_str . $this->version);
 
     if ($param->queryLanguage->_value <> 'cqldan') {
@@ -278,8 +278,8 @@ class openSearch extends webServiceServer {
                                $this->config->get_value('cache_port', 'setup'),
                                $this->config->get_value('cache_expire', 'setup'));
       if (empty($_GET['skipCache'])) {
-        if ($relation_cache = $this->cache->get($key_relation_cache)) {
-          verbose::log(STAT, 'Cache hit, lines: ' . count($relation_cache));
+        if ($work_struct = $this->cache->get($key_work_struct)) {
+          verbose::log(STAT, 'Cache hit, lines: ' . count($work_struct));
         }
         else {
           verbose::log(STAT, 'Cache miss');
@@ -327,8 +327,8 @@ class openSearch extends webServiceServer {
         $w_no++;
         // find relations for the record in fedora
         // fpid: id as found in solr's fedoraPid
-        if ($relation_cache[$w_no]) {
-          $fpid_array = $relation_cache[$w_no];
+        if ($work_struct[$w_no]) {
+          $fpid_array = $work_struct[$w_no];
         }
         else {
           if ($use_work_collection) {
@@ -359,7 +359,7 @@ class openSearch extends webServiceServer {
           }
           else
             $fpid_array = array($fpid);
-          $relation_cache[$w_no] = $fpid_array;
+          $work_struct[$w_no] = $fpid_array;
         }
         if (DEBUG_ON) print_r($fpid_array);
 
@@ -480,7 +480,7 @@ class openSearch extends webServiceServer {
     $this->watch->stop('Build_id');
 
     if ($this->cache)
-      $this->cache->set($key_relation_cache, $relation_cache);
+      $this->cache->set($key_work_struct, $work_struct);
 
     $missing_record = $this->config->get_value('missing_record', 'setup');
 
@@ -497,7 +497,7 @@ class openSearch extends webServiceServer {
           $this->get_fedora_rels_ext($fpid, $unit_rels_ext);
           list($fpid, $unit_members) = $this->parse_unit_for_object_ids($unit_rels_ext);
           if ($this->xs_boolean($param->includeHoldingsCount->_value)) {
-            $no_of_holdings = $unit_members + $this->get_solr_holdings($fpid);
+            $no_of_holdings = $this->get_holdings($fpid);
           }
           if ($error = $this->get_fedora_raw($fpid, $fedora_result)) {
 // fetch empty record from ini-file and use instead of error
@@ -548,21 +548,21 @@ class openSearch extends webServiceServer {
       $this->format_records($collections, $format);
     }
     if ($format['found_solr_format']) {
-      $this->format_solr($collections, $format, $solr_2_arr, $relation_cache, $param->collectionType->_value == 'work-1');
+      $this->format_solr($collections, $format, $solr_2_arr, $work_struct, $param->collectionType->_value == 'work-1');
     }
     $this->remove_unselected_formats($collections, $format);
 
 //var_dump($solr_2_arr);
-//var_dump($relation_cache);
+//var_dump($work_struct);
 //die();
     if ($_REQUEST['work'] == 'debug') {
       echo "returned_work_ids: \n";
       print_r($work_ids);
       echo "cache: \n";
-      print_r($relation_cache);
+      print_r($work_struct);
       die();
     }
-    //if (DEBUG_ON) { print_r($relation_cache); die(); }
+    //if (DEBUG_ON) { print_r($work_struct); die(); }
     //if (DEBUG_ON) { print_r($collections); die(); }
     //if (DEBUG_ON) { print_r($solr_arr); die(); }
 
@@ -634,11 +634,13 @@ class openSearch extends webServiceServer {
       }
     }
 
-    $format = $this->set_format($param->objectFormat, $this->config->get_value('open_format', 'setup'), $this->config->get_value('solr_format', 'setup'));
-
+    $format = $this->set_format($param->objectFormat, 
+                                $this->config->get_value('open_format', 'setup'), 
+                                $this->config->get_value('solr_format', 'setup'));
     $this->cache = new cache($this->config->get_value('cache_host', 'setup'),
                              $this->config->get_value('cache_port', 'setup'),
                              $this->config->get_value('cache_expire', 'setup'));
+
     if (is_array($param->identifier)) {
       $fpids = $param->identifier;
     }
@@ -654,7 +656,9 @@ class openSearch extends webServiceServer {
         return $ret_error;
 // 2DO 
 // relations are now on the unit, so this has to be found
-      if ($param->relationData->_value || $this->xs_boolean($param->includeHoldingsCount->_value)) {
+      if ($param->relationData->_value || 
+          $format['found_solr_format'] || 
+          $this->xs_boolean($param->includeHoldingsCount->_value)) {
         $this->get_fedora_rels_ext($fpid->_value, $fedora_rels_ext);
         $unit_id = $this->parse_rels_for_unit_id($fedora_rels_ext);
         if ($param->relationData->_value) {
@@ -662,9 +666,9 @@ class openSearch extends webServiceServer {
         }
         if ($this->xs_boolean($param->includeHoldingsCount->_value)) {
           $this->get_fedora_rels_ext($unit_id, $unit_rels_ext);
-          list($dummy, $no_of_holdings) = $this->parse_unit_for_object_ids($unit_rels_ext);
+          list($dummy, $dummy) = $this->parse_unit_for_object_ids($unit_rels_ext);
           $this->cql2solr = new cql2solr('opensearch_cql.xml', $this->config);
-          $no_of_holdings += $this->get_solr_holdings($fpid);
+          $no_of_holdings = $this->get_holdings($fpid->_value);
         }
       }
 //var_dump($fedora_rels_ext);
@@ -683,11 +687,32 @@ class openSearch extends webServiceServer {
                                    $no_of_holdings);
       $collections[]->_value = $o;
       unset($o);
+      $id_array[] = $unit_id;
+      $work_struct[$fpid_number + 1] = array($unit_id);
     }
 
-    if ($format['found_open_format'] || $format['found_solr_format']) {
+    if ($format['found_open_format']) {
       $this->format_records($collections, $format);
     }
+    if ($format['found_solr_format']) {
+      foreach ($format as $f) {
+        if ($f[is_solr_format]) {
+          $add_fl .= ',' . $f['format_name'];
+        }
+      }
+      $chk_query = $this->cql2solr->edismax_convert('unit.id=(' . implode($id_array, ' OR ') . ')');
+      $solr_q = $this->repository['solr'] .
+                '?wt=phps' .
+                '&q=' . urlencode($chk_query['edismax']) .
+                '&start=0' .
+                '&rows=50000' .
+                '&defType=edismax' .
+                '&fl=rec.id' . $add_fl;
+      $solr_result = $this->curl->get($solr_q);
+      $solr_2_arr[] = unserialize($solr_result);
+      $this->format_solr($collections, $format, $solr_2_arr, $work_struct);
+    }
+    $this->remove_unselected_formats($collections, $format);
 
     $result = &$ret->searchResponse->_value->result->_value;
     $result->hitCount->_value = count($collections);
@@ -738,28 +763,38 @@ class openSearch extends webServiceServer {
   /** \brief
    *
    */
-  private function get_solr_holdings($pid) {
-    $holds = 0;
-    $q = $this->cql2solr->edismax_convert('rec.id=' . $pid);
-    $solr_query = $this->repository['solr'] . 
-                    '?q=' . $q['edismax'] .
-                    '&rows=1&fl=ols.holdingsCount&defType=edismax&wt=phps';
-
-    $this->watch->start('solr_holdings');
-    $solr_result = $this->curl->get($solr_query);
-    $this->watch->stop('solr_holdings');
-    if (($solr_result) && ($solr_arr = unserialize($solr_result)))
-      $holds = intval($solr_arr['response']['docs'][0]['ols.holdingsCount'][0]);
-
-    if ($holds) $holds--;
-
+  private function get_holdings($pid) {
+    static $hold_ws_url;
+    static $dom;
+    if (empty($hold_ws_url)) {
+      $hold_ws_url = $this->config->get_value('holdings_db', 'setup');
+    }
+    $this->watch->start('holdings');
+    $hold_url = sprintf($hold_ws_url, $pid);
+    $holds = $this->curl->get($hold_url);
+    $this->watch->stop('holdings');
+    $curl_err = $this->curl->get_status();
+    if ($curl_err['http_code'] < 200 || $curl_err['http_code'] > 299) {
+      verbose::log(FATAL, 'holdings_db http-error: ' . $curl_err['http_code'] . ' from: ' . $hold_url);
+      $holds = array('have' => 0, 'lend' => 0);
+    }
+    else {
+      if (empty($dom)) {
+        $dom = new DomDocument();
+      }
+      $dom->preserveWhiteSpace = false;
+      if (@ $dom->loadXML($holds)) {
+        $holds = array('have' => $dom->getElementsByTagName('librariesHave')->item(0)->nodeValue,
+                       'lend' => $dom->getElementsByTagName('librariesLend')->item(0)->nodeValue);
+      }
+    }
     return $holds;
   }
 
   /** \brief Pick tags from solr result and create format
    *
    */
-  private function format_solr(&$collections, $format, $solr, &$work_struct, $work_1) {
+  private function format_solr(&$collections, $format, $solr, &$work_struct, $work_1 = FALSE) {
     $solr_display_ns = $this->xmlns['ds'];
     $this->watch->start('format_solr');
     foreach ($format as $format_name => $format_arr) {
@@ -1196,7 +1231,7 @@ class openSearch extends webServiceServer {
    * @param $format          -
    * @param $debug_info      -
    */
-  private function parse_fedora_object(&$fedora_obj, &$fedora_rels_obj, $rels_type, $rec_id, $filter, $format, $holdings_count=NULL, $debug_info='') {
+  private function parse_fedora_object(&$fedora_obj, &$fedora_rels_obj, $rels_type, $rec_id, $filter, $format, $holdings_count, $debug_info='') {
     static $dom, $rels_dom, $stream_dom, $allowed_relation;
     if (empty($dom)) {
       $dom = new DomDocument();
@@ -1310,8 +1345,10 @@ class openSearch extends webServiceServer {
     $ret = $rec;
     $ret->identifier->_value = $rec_id;
     $ret->creationDate->_value = $this->get_creation_date($dom);
-    if (isset($holdings_count)) 
-      $ret->holdingsCount->_value = $holdings_count;
+    if (is_array($holdings_count)) {
+      $ret->holdingsCount->_value = $holdings_count['have'];
+      $ret->lendingLibraries->_value = $holdings_count['lend'];
+    }
     if ($relations) $ret->relations->_value = $relations;
     $ret->formatsAvailable->_value = $this->scan_for_formats($dom);
     if ($debug_info) $ret->queryResultExplanation->_value = $debug_info;
