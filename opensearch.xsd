@@ -285,7 +285,7 @@ You should have received a copy of the GNU Affero General Public License along w
 	</xs:element>
 	<xs:element name="identifier" type="xs:string">
 		<xs:annotation>
-			<xs:documentation xml:lang="en">Unik identifier of an object.</xs:documentation>
+			<xs:documentation xml:lang="en">Unique identifier of an object.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="includeHoldingsCount" type="xs:boolean">

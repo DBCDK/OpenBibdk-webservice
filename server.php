@@ -770,10 +770,12 @@ class openSearch extends webServiceServer {
           foreach ($work_struct[$rec_no] as $mani_no => $unit_no) {
             foreach ($solr[0]['response']['docs'] as $solr_doc) {
               if (in_array($unit_no, $solr_doc['unit.id'])) {
+                $mani->_namespace = $solr_display_ns;
+                $mani->_value->identifier->_namespace = $solr_display_ns;
+                $mani->_value->identifier->_value = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
                 foreach ($format_tags as $format_tag) {
                   if ($solr_doc[$format_tag]) {
                     list($tag_NS, $tag_value) = explode('.', $format_tag);
-                    $mani->_namespace = $solr_display_ns;
                     $mani->_value->$tag_value->_namespace = $solr_display_ns;
                     $mani->_value->$tag_value->_value = $solr_doc[$format_tag][0];
                   }
