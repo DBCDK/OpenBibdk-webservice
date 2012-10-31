@@ -5,7 +5,7 @@
       Display format for bibliotek.dk.
     </xs:documentation>
 	</xs:annotation>
-    <xs:element name="indexDisplay">
+    <xs:element name="briefDisplay">
       <xs:element ref="ds:manifestation" maxOccurs="unbounded"/>
     </xs:element>
     <xs:element name="manifestation">
