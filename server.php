@@ -227,7 +227,6 @@ class openSearch extends webServiceServer {
     $debug_query = $this->xs_boolean($param->queryDebug->_value);
 
     // do the query
-    $search_ids = array();
     if ($sort == 'random') {
       if ($err = $this->get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, $filter_q, '', $debug_query, $solr_arr))
         $error = $err;
@@ -236,11 +235,8 @@ class openSearch extends webServiceServer {
       if ($err = $this->get_solr_array($solr_query['edismax'], 0, $rows, $sort_q, $rank_q, $facet_q, $filter_q, $boost_str, $debug_query, $solr_arr))
         $error = $err;
       else {
-        foreach ($solr_arr['response']['docs'] as $fdoc) {
-          $uid = $fdoc['unit.id'][0];
-          //$local_data[$uid] = $fdoc['rec.collectionIdentifier'];
-          $search_ids[] = $uid;
-        }
+        $this->extract_unit_id_from_solr($solr_arr['response']['docs'], $search_ids);
+        $numFound = $solr_arr['response']['numFound'];
       }
     }
     $this->watch->stop('Solr');
@@ -253,7 +249,6 @@ class openSearch extends webServiceServer {
       $debug_result->parsedQuery->_value = $solr_arr['debug']['parsedquery'];
       $debug_result->parsedQueryString->_value = $solr_arr['debug']['parsedquery_toString'];
     }
-    $numFound = $solr_arr['response']['numFound'];
     $facets = $this->parse_for_facets($solr_arr['facet_counts']);
 
     $this->watch->start('Build_id');
@@ -302,12 +297,7 @@ class openSearch extends webServiceServer {
             return $ret_error;
           }
           else {
-            $search_ids = array();
-            foreach ($solr_arr['response']['docs'] as $fdoc) {
-              $uid = $fdoc['unit.id'][0];
-              //$local_data[$uid] = $fdoc['rec.collectionIdentifier'];
-              $search_ids[] = $uid;
-            }
+            $this->extract_unit_id_from_solr($solr_arr['response']['docs'], $search_ids);
             $numFound = $solr_arr['response']['numFound'];
           }
           $this->watch->stop('Solr_add');
@@ -707,7 +697,7 @@ class openSearch extends webServiceServer {
                 '&start=0' .
                 '&rows=50000' .
                 '&defType=edismax' .
-                '&fl=rec.id' . $add_fl;
+                '&fl=unit.id' . $add_fl;
       $solr_result = $this->curl->get($solr_q);
       $solr_2_arr[] = unserialize($solr_result);
       $this->format_solr($collections, $format, $solr_2_arr, $work_struct);
@@ -730,6 +720,19 @@ class openSearch extends webServiceServer {
   }
 
   /*******************************************************************************/
+
+  private function extract_unit_id_from_solr($solr_docs, &$search_ids) {
+    static $u_err = 0;
+    $search_ids = array();
+    foreach ($solr_docs as &$fdoc) {
+      if ($uid = $fdoc['unit.id'][0]) {
+        $search_ids[] = $uid;
+      }
+      elseif (++$u_err < 10) {
+        verbose::log(FATAL, 'Missing unit.id in solr_result. Record no: ' . (count($search_ids) + $u_err));
+      }
+    }
+  }
 
   private function set_format($objectFormat, $open_format, $solr_format) {
     if (is_array($objectFormat))
@@ -804,10 +807,8 @@ class openSearch extends webServiceServer {
           $rec_no = $c->_value->collection->_value->resultPosition->_value;
           foreach ($work_struct[$rec_no] as $mani_no => $unit_no) {
             foreach ($solr[0]['response']['docs'] as $solr_doc) {
-              if (in_array($unit_no, $solr_doc['unit.id'])) {
+              if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
                 $mani->_namespace = $solr_display_ns;
-                $mani->_value->identifier->_namespace = $solr_display_ns;
-                $mani->_value->identifier->_value = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
                 foreach ($format_tags as $format_tag) {
                   if ($solr_doc[$format_tag]) {
                     list($tag_NS, $tag_value) = explode('.', $format_tag);
