@@ -1013,8 +1013,10 @@ class openSearch extends webServiceServer {
         }
       }
 
-//      print_r($profile);
-//      echo "rels:\n"; print_r($rels); echo "source:\n"; print_r($source);
+      if (DEBUG_ON) {
+        print_r($profile);
+        echo "rels:\n"; print_r($rels); echo "source:\n"; print_r($source);
+      }
     }
     if (substr($to_id, 0, 5) == 'unit:') {
       $this->get_fedora_rels_ext($to_id, $rels_sys);
@@ -1022,7 +1024,9 @@ class openSearch extends webServiceServer {
     }
     $from = $this->kilde($from_id);
     $to = $this->kilde($to_id);
-//    echo "from: $from to: $to relation: $relation \n";
+    if (DEBUG_ON) {
+      echo "from: $from to: $to relation: $relation \n";
+    }
 
     return (isset($rels[$to][$relation]));
   }
