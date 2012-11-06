@@ -375,7 +375,8 @@ class openSearch extends webServiceServer {
     define('MAX_QUERY_ELEMENTS', 950);
     $block_idx = $no_bool = 0;
     if (DEBUG_ON) echo 'work_ids: ' . print_r($work_ids, TRUE) . "\n";
-    if ($use_work_collection && ($this->xs_boolean($param->allObjects->_value) || $filter_agency)) {
+    if ($format['found_solr_format'] ||
+        ($use_work_collection && ($this->xs_boolean($param->allObjects->_value) || $filter_agency))) {
       $add_query[$block_idx] = '';
       foreach ($work_ids as $w_no => $w) {
         if (count($w) > 1 || $format['found_solr_format']) {
@@ -806,17 +807,19 @@ class openSearch extends webServiceServer {
         foreach ($collections as $idx => &$c) {
           $rec_no = $c->_value->collection->_value->resultPosition->_value;
           foreach ($work_struct[$rec_no] as $mani_no => $unit_no) {
-            foreach ($solr[0]['response']['docs'] as $solr_doc) {
-              if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
-                $mani->_namespace = $solr_display_ns;
-                foreach ($format_tags as $format_tag) {
-                  if ($solr_doc[$format_tag]) {
-                    list($tag_NS, $tag_value) = explode('.', $format_tag);
-                    $mani->_value->$tag_value->_namespace = $solr_display_ns;
-                    $mani->_value->$tag_value->_value = $solr_doc[$format_tag][0];
+            if (is_array($solr[0]['response']['docs'])) {
+              foreach ($solr[0]['response']['docs'] as $solr_doc) {
+                if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
+                  $mani->_namespace = $solr_display_ns;
+                  foreach ($format_tags as $format_tag) {
+                    if ($solr_doc[$format_tag]) {
+                      list($tag_NS, $tag_value) = explode('.', $format_tag);
+                      $mani->_value->$tag_value->_namespace = $solr_display_ns;
+                      $mani->_value->$tag_value->_value = $solr_doc[$format_tag][0];
+                    }
                   }
+                  break;
                 }
-                break;
               }
             }
             $manifestation->manifestation[] = $mani;
