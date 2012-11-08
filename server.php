@@ -812,10 +812,10 @@ class openSearch extends webServiceServer {
                 if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
                   $mani->_namespace = $solr_display_ns;
                   foreach ($format_tags as $format_tag) {
-                    if ($solr_doc[$format_tag]) {
+                    if ($solr_doc[$format_tag] || $format_tag == 'identifier.identifier') {
                       list($tag_NS, $tag_value) = explode('.', $format_tag);
                       $mani->_value->$tag_value->_namespace = $solr_display_ns;
-                      if ($tag_NS == 'identifier' && $tag_value == 'identifier') {
+                      if ($format_tag == 'identifier.identifier') {
                         $mani->_value->$tag_value->_value = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
                       }
                       else {
