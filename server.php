@@ -815,7 +815,12 @@ class openSearch extends webServiceServer {
                     if ($solr_doc[$format_tag]) {
                       list($tag_NS, $tag_value) = explode('.', $format_tag);
                       $mani->_value->$tag_value->_namespace = $solr_display_ns;
-                      $mani->_value->$tag_value->_value = $solr_doc[$format_tag][0];
+                      if ($tag_NS == 'identifier' && $tag_value == 'identifier') {
+                        $mani->_value->$tag_value->_value = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
+                      }
+                      else {
+                        $mani->_value->$tag_value->_value = $solr_doc[$format_tag][0];
+                      }
                     }
                   }
                   break;
