@@ -812,14 +812,24 @@ class openSearch extends webServiceServer {
                 if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
                   $mani->_namespace = $solr_display_ns;
                   foreach ($format_tags as $format_tag) {
-                    if ($solr_doc[$format_tag] || $format_tag == 'identifier.identifier') {
-                      list($tag_NS, $tag_value) = explode('.', $format_tag);
+                    if ($solr_doc[$format_tag] || $format_tag == 'fedora.identifier') {
+                      if (strpos($format_tag, '.')) {
+                        list($tag_NS, $tag_value) = explode('.', $format_tag);
+                      }
+                      else {
+                        $tag_value = $format_tag;
+                      }
                       $mani->_value->$tag_value->_namespace = $solr_display_ns;
-                      if ($format_tag == 'identifier.identifier') {
+                      if ($format_tag == 'fedora.identifier') {
                         $mani->_value->$tag_value->_value = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
                       }
                       else {
-                        $mani->_value->$tag_value->_value = $solr_doc[$format_tag][0];
+                        if (is_array($solr_doc[$format_tag])) {
+                          $mani->_value->$tag_value->_value = $this->char_norm($solr_doc[$format_tag][0]);
+                        }
+                        else {
+                          $mani->_value->$tag_value->_value = $this->char_norm($solr_doc[$format_tag]);
+                        }
                       }
                     }
                   }
