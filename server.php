@@ -837,7 +837,10 @@ class openSearch extends webServiceServer {
                 }
               }
             }
-            $manifestation->manifestation[] = $mani;
+            if ($mani) {   // should contain data, but for some odd reason it can be empty. Some bug in the solr-indexes could be the reason
+              $manifestation->manifestation[] = $mani;
+              unset($mani);
+            }
             unset($mani);
             if ($work_1) {
               break;
