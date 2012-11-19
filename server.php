@@ -838,7 +838,10 @@ class openSearch extends webServiceServer {
               }
             }
             if ($mani) {   // should contain data, but for some odd reason it can be empty. Some bug in the solr-indexes could be the reason
-              $manifestation->manifestation[] = $mani;
+	      // pjo: above goes for identifier as well -- added check for identifier
+	      if( isset($mani->_value->identifier->_value) ){
+		  $manifestation->manifestation[] = $mani;
+		}
               unset($mani);
             }
             unset($mani);
