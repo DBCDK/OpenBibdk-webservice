@@ -539,7 +539,7 @@ class openSearch extends webServiceServer {
       $this->format_records($collections, $format);
     }
     if ($format['found_solr_format']) {
-      $this->format_solr($collections, $format, $solr_2_arr, $work_struct, $param->collectionType->_value == 'work-1');
+      $this->format_solr($collections, $format, $solr_2_arr, $work_ids, $param->collectionType->_value == 'work-1');
     }
     $this->remove_unselected_formats($collections, $format);
 
@@ -679,7 +679,7 @@ class openSearch extends webServiceServer {
       $collections[]->_value = $o;
       unset($o);
       $id_array[] = $unit_id;
-      $work_struct[$fpid_number + 1] = array($unit_id);
+      $work_ids[$fpid_number + 1] = array($unit_id);
     }
 
     if ($format['found_open_format']) {
@@ -701,7 +701,7 @@ class openSearch extends webServiceServer {
                 '&fl=unit.id' . $add_fl;
       $solr_result = $this->curl->get($solr_q);
       $solr_2_arr[] = unserialize($solr_result);
-      $this->format_solr($collections, $format, $solr_2_arr, $work_struct);
+      $this->format_solr($collections, $format, $solr_2_arr, $work_ids);
     }
     $this->remove_unselected_formats($collections, $format);
 
@@ -798,7 +798,7 @@ class openSearch extends webServiceServer {
   /** \brief Pick tags from solr result and create format
    *
    */
-  private function format_solr(&$collections, $format, $solr, &$work_struct, $work_1 = FALSE) {
+  private function format_solr(&$collections, $format, $solr, &$work_ids, $work_1 = FALSE) {
     $solr_display_ns = $this->xmlns['ds'];
     $this->watch->start('format_solr');
     foreach ($format as $format_name => $format_arr) {
@@ -806,7 +806,7 @@ class openSearch extends webServiceServer {
         $format_tags = explode(',', $format_arr['format_name']);
         foreach ($collections as $idx => &$c) {
           $rec_no = $c->_value->collection->_value->resultPosition->_value;
-          foreach ($work_struct[$rec_no] as $mani_no => $unit_no) {
+          foreach ($work_ids[$rec_no] as $mani_no => $unit_no) {
             if (is_array($solr[0]['response']['docs'])) {
               foreach ($solr[0]['response']['docs'] as $solr_doc) {
                 if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
@@ -837,12 +837,8 @@ class openSearch extends webServiceServer {
                 }
               }
             }
-            if ($mani) {   // should contain data, but for some odd reason it can be empty. Some bug in the solr-indexes could be the reason
-	      // pjo: above goes for identifier as well -- added check for identifier
-	      if( isset($mani->_value->identifier->_value) ){
-		  $manifestation->manifestation[] = $mani;
-		}
-              unset($mani);
+            if ($mani) {   // should contain data, but for some odd reason it can be empty. Some bug in the solr-indexes?
+		      $manifestation->manifestation[] = $mani;
             }
             unset($mani);
             if ($work_1) {
