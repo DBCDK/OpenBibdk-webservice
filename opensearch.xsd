@@ -618,6 +618,24 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:enumeration value="facet.type"/>
 		</xs:restriction>
 	</xs:simpleType>
+    <xs:simpleType name="fieldNameType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">...</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="dc.title"/>
+            <xs:enumeration value="cql.anyIndexes"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="fieldTypeType">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">Ranking field as phrase or word.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="phrase"/>
+            <xs:enumeration value="word"/>
+        </xs:restriction>
+    </xs:simpleType>
 	<xs:simpleType name="queryLanguageType">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">The languages you can choose from.</xs:documentation>
