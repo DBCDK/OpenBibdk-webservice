@@ -14,9 +14,11 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="ds:id" minOccurs="0"/>
                 <xs:element ref="ds:accessType" minOccurs="0"/>
                 <xs:element ref="ds:creator" minOccurs="0"/>
+                <xs:element ref="ds:fedoraPid" minOccurs="0"/>
+                <xs:element ref="ds:id" minOccurs="0"/>
+                <xs:element ref="ds:identifier" minOccurs="0"/>
                 <xs:element ref="ds:language" minOccurs="0"/>
                 <xs:element ref="ds:partOf" minOccurs="0"/>
                 <xs:element ref="ds:title" minOccurs="0"/>
@@ -35,7 +37,17 @@
 			<xs:documentation xml:lang="en">Creator of the work</xs:documentation>
 		</xs:annotation>
 	</xs:element>
+    <xs:element name="fedoraPid" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">Unique identifier of an object.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
     <xs:element name="id" type="xs:string">
+        <xs:annotation>
+            <xs:documentation xml:lang="en">Unique identifier of an object.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="identifier" type="xs:string">
         <xs:annotation>
             <xs:documentation xml:lang="en">Unique identifier of an object.</xs:documentation>
         </xs:annotation>
