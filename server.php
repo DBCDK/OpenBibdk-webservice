@@ -377,6 +377,7 @@ class openSearch extends webServiceServer {
     if (DEBUG_ON) echo 'work_ids: ' . print_r($work_ids, TRUE) . "\n";
     if ($format['found_solr_format'] ||
         ($use_work_collection && ($this->xs_boolean($param->allObjects->_value) || $filter_agency))) {
+      $no_of_rows = 1;
       $add_query[$block_idx] = '';
       foreach ($work_ids as $w_no => $w) {
         if (count($w) > 1 || $format['found_solr_format']) {
@@ -387,6 +388,7 @@ class openSearch extends webServiceServer {
           foreach ($w as $id) {
             $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' OR ') . $id;
             $no_bool++;
+            $no_of_rows++;
           }
         }
       }
@@ -418,7 +420,7 @@ class openSearch extends webServiceServer {
                        '&q=' . urlencode($q) .
                        '&fq=' . $filter_q .
                        '&start=0' .
-                       '&rows=50000' .
+                       '&rows=' . $no_of_rows . 
                        '&defType=edismax' .
                        '&fl=unit.id' . $add_fl;
           if ($rank_qf) $post_query .= '&qf=' . $rank_qf;
