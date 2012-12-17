@@ -180,7 +180,13 @@ class openSearch extends webServiceServer {
     $key_work_struct = md5($param->query->_value . $repository_name . $filter_agency .
                               $use_work_collection .  $sort . $rank . $boost_str . $this->version);
 
-    if ($param->queryLanguage->_value <> 'cqldan') {
+    if ($param->queryLanguage->_value == 'cqldan') {
+      define('AND_OP', 'og');
+      define('OR_OP', 'eller');
+    }
+    else {
+      define('AND_OP', 'AND');
+      define('OR_OP', 'OR');
       $param->queryLanguage->_value = 'cqleng';
     }
     $this->cql2solr = new cql2solr('opensearch_cql.xml', $this->config, $param->queryLanguage->_value);
@@ -386,7 +392,7 @@ class openSearch extends webServiceServer {
             $no_bool = 0;
           }
           foreach ($w as $id) {
-            $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' OR ') . $id;
+            $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $id;
             $no_bool++;
             $no_of_rows++;
           }
@@ -396,7 +402,7 @@ class openSearch extends webServiceServer {
         $which_rec_id = 'unit.id';
         foreach ($add_query as $add_idx => $add_q) {
           if (!$this->xs_boolean($param->allObjects->_value)) {
-            $chk_query = $this->cql2solr->edismax_convert('(' . $param->query->_value . ') AND ' . $which_rec_id . '=(' . $add_q . ')', $rank_type[$rank]);
+            $chk_query = $this->cql2solr->edismax_convert('(' . $param->query->_value . ') ' . AND_OP . ' ' . $which_rec_id . '=(' . $add_q . ')', $rank_type[$rank]);
             $q = $chk_query['edismax'];
           }
           elseif ($filter_agency) {
@@ -693,7 +699,7 @@ class openSearch extends webServiceServer {
           $add_fl .= ',' . $f['format_name'];
         }
       }
-      $chk_query = $this->cql2solr->edismax_convert('unit.id=(' . implode($id_array, ' OR ') . ')');
+      $chk_query = $this->cql2solr->edismax_convert('unit.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
       $solr_q = $this->repository['solr'] .
                 '?wt=phps' .
                 '&q=' . urlencode($chk_query['edismax']) .
