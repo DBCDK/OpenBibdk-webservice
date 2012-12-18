@@ -981,7 +981,7 @@ class openSearch extends webServiceServer {
       $this->number_of_fedora_calls++;
       $this->curl->set_authentication('fedoraAdmin', 'fedoraAdmin');
       $this->watch->start('fedora');
-      $rec = $this->curl->get($record_uri);
+      $rec = $this->char_norm($this->curl->get($record_uri));
       $this->watch->stop('fedora');
       $curl_err = $this->curl->get_status();
       if ($curl_err['http_code'] < 200 || $curl_err['http_code'] > 299) {
@@ -1456,7 +1456,7 @@ class openSearch extends webServiceServer {
                     }
                   }
                   $o->_namespace = $record->item(0)->lookupNamespaceURI($tag->prefix);
-                  $o->_value = $this->char_norm(trim($tag->nodeValue));
+                  $o->_value = trim($tag->nodeValue);
                   if (!($tag->localName == 'subject' && $tag->nodeValue == 'undefined'))
                     $rec-> {$tag->localName}[] = $o;
                   unset($o);
@@ -1499,10 +1499,8 @@ class openSearch extends webServiceServer {
   }
 
   private function char_norm($s) {
-    $from[] = "\xEA\x9C\xB2";
-    $to[] = 'Aa';
-    $from[] = "\xEA\x9C\xB3";
-    $to[] = 'aa';
+    $from[] = "\xEA\x9C\xB2"; $to[] = 'Aa';
+    $from[] = "\xEA\x9C\xB3"; $to[] = 'aa';
     return str_replace($from, $to, $s);
   }
 
