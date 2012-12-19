@@ -1379,7 +1379,7 @@ class openSearch extends webServiceServer {
     $ret->identifier->_value = $rec_id;
     $ret->creationDate->_value = $this->get_creation_date($dom);
 // hack
-    if (strpos($rec_id, 'tsart:') || strpos($rec_id, 'avis:')) {
+    if (empty($ret->creationDate->_value) && (strpos($rec_id, 'tsart:') || strpos($rec_id, 'avis:'))) {
       unset($holdings_count);
     }
     if (is_array($holdings_count)) {
