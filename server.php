@@ -1378,6 +1378,10 @@ class openSearch extends webServiceServer {
     $ret = $rec;
     $ret->identifier->_value = $rec_id;
     $ret->creationDate->_value = $this->get_creation_date($dom);
+// hack
+    if (strpos($rec_id, 'tsart:') || strpos($rec_id, 'avis:')) {
+      unset($holdings_count);
+    }
     if (is_array($holdings_count)) {
       $ret->holdingsCount->_value = $holdings_count['have'];
       $ret->lendingLibraries->_value = $holdings_count['lend'];
