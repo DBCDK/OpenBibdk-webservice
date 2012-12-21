@@ -51,6 +51,9 @@ class openSearch extends webServiceServer {
     $this->curl->set_option(CURLOPT_TIMEOUT, $timeout);
 
     define(DEBUG_ON, $this->debug);
+    if (!$mir = $this->config->get_value('max_identical_relation_names', 'setup'))
+      $mir = 20;
+    define(MAX_IDENTICAL_RELATIONS, $mir);
   }
 
   /**
@@ -1264,8 +1267,8 @@ class openSearch extends webServiceServer {
    * @param $format          -
    * @param $debug_info      -
    */
-  private function parse_fedora_object(&$fedora_obj, &$fedora_rels_obj, $rels_type, $rec_id, $filter, $format, $holdings_count, $debug_info='') {
-    static $dom, $rels_dom, $stream_dom, $allowed_relation;
+  private function parse_fedora_object(&$fedora_obj, $fedora_rels_obj, $rels_type, $rec_id, $filter, $format, $holdings_count, $debug_info='') {
+    static $dom;
     if (empty($dom)) {
       $dom = new DomDocument();
       $dom->preserveWhiteSpace = false;
@@ -1277,102 +1280,9 @@ class openSearch extends webServiceServer {
 
     $rec = $this->extract_record($dom, $rec_id, $format);
 
-    if (!isset($allowed_relation)) {
-      $allowed_relation = $this->config->get_value('relation', 'setup');
-    }
-    if (empty($rels_dom)) {
-      $rels_dom = new DomDocument();
-    }
-
-// Handle relations comming from local_data streams
-// 2DO some testing to ensure this is only done when needed (asked for)
-    $this->get_fedora_datastreams($rec_id, $fedora_streams);
-    if (empty($stream_dom)) {
-      $stream_dom = new DomDocument();
-    }
-    if (@ !$stream_dom->loadXML($fedora_streams)) {
-      verbose::log(DEBUG, 'Cannot load STREAMS for ' . $rec_id . ' into DomXml');
-    } else {
-      if ($rels_type == 'type' || $rels_type == 'uri' || $rels_type == 'full') {
-        foreach ($stream_dom->getElementsByTagName('datastream') as $node) {
-          if (substr($node->getAttribute('ID'), 0, 9) == 'localData') {
-            $dub_check = array();
-            foreach ($node->getElementsByTagName('link') as $link) {
-              $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
-              if (empty($dup_check[$url])) {
-                unset($relation);
-                $relation->relationType->_value = 
-                      $link->getelementsByTagName('relationType')->item(0)->nodeValue;
-                if ($rels_type == 'uri' || $rels_type == 'full') {
-                  $relation->relationUri->_value = $url;
-                  $relation->linkObject->_value->accessType->_value = 
-                      $link->getelementsByTagName('accessType')->item(0)->nodeValue;
-                  $relation->linkObject->_value->access->_value = 
-                      $link->getelementsByTagName('access')->item(0)->nodeValue;
-                  $relation->linkObject->_value->linkTo->_value = 
-                      $link->getelementsByTagName('LinkTo')->item(0)->nodeValue;
-                }
-                $dup_check[$url] = TRUE;
-                $relations->relation[]->_value = $relation;
-                unset($relation);
-              }
-              //echo 'll: ' . $link->getelementsByTagName('LinkTo')->item(0)->nodeValue;
-            }
-          }
-        }
-      }
-    }
-        //    var_dump($local_links);
-//echo "\nStream: " . $fedora_streams . "\n"; 
-//echo "\nrels_addi: " . $fedora_rels_obj . "\n"; 
-
-// Handle relations comming from RELS_EXT
-// rels_ext is already in fedora_streams, so use that instead og fedora_rels_ext
-    @ $rels_dom->loadXML($fedora_rels_obj);
-    if ($rels_dom->getElementsByTagName('Description')->item(0)) {
-      foreach ($rels_dom->getElementsByTagName('Description')->item(0)->childNodes as $tag) {
-        if ($tag->nodeType == XML_ELEMENT_NODE) {
-          if ($rel_prefix = array_search($tag->getAttribute('xmlns'), $this->xmlns))
-            $this_relation = $rel_prefix . ':' . $tag->localName;
-          else
-            $this_relation = $tag->localName;
-          $relation_type = $allowed_relation[$this_relation];
-//echo "this_relation: $this_relation relation_type: $relation_type\n";
-          //verbose::log(DEBUG,  "this_relation: $this_relation relation_type: $relation_type");
-          if (! $this->check_valid_relation($rec_id, $tag->nodeValue, $this_relation, $this->search_profile))
-            unset($relation_type);
-          if ($relation_type) {
-            //verbose::log(DEBUG, $tag->localName . ' ' . $tag->getAttribute('xmlns'). ' -> ' .  array_search($tag->getAttribute('xmlns'), $this->xmlns));
-            if ($rels_type == 'type' || $rels_type == 'uri' || $rels_type == 'full')
-            if ($relation_type <> REL_TO_INTERNAL_OBJ || $this->is_searchable($tag->nodeValue, $filter)) {
-              $relation->relationType->_value = $this_relation;
-              if ($rels_type == 'uri' || $rels_type == 'full') {
-                $this->get_fedora_rels_ext($tag->nodeValue, $rels_sys);
-                $rel_uri = $this->fetch_primary_bib_object($rels_sys);
-                $relation->relationUri->_value = $rel_uri;
-              }
-              if ($rels_type == 'full' && $relation_type == REL_TO_INTERNAL_OBJ) {
-                //verbose::log(DEBUG, 'RFID: ' . $tag->nodeValue);
-                $this->get_fedora_raw($rel_uri, $related_obj);
-                if (@ !$rels_dom->loadXML($related_obj)) {
-                  verbose::log(FATAL, 'Cannot load ' . $rel_uri . ' object for ' . $rec_id . ' into DomXml');
-                }
-                else {
-                  $rel_obj = &$relation->relationObject->_value->object->_value;
-                  $rel_obj = $this->extract_record($rels_dom, $tag->nodeValue, $format);
-                  $rel_obj->identifier->_value = $rel_uri;
-                  $rel_obj->creationDate->_value = $this->get_creation_date($rels_dom);
-                  $rel_obj->formatsAvailable->_value = $this->scan_for_formats($rels_dom);
-                }
-              }
-              if ($rels_type == 'type' || $relation->relationUri->_value) {
-                $relations->relation[]->_value = $relation;
-              }
-              unset($relation);
-            }
-          }
-        }
-      }  // foreach ...
+    if ($rels_type == 'type' || $rels_type == 'uri' || $rels_type == 'full') {
+      $this->get_relations_from_local_stream($relations, $rec_id, $rels_type);
+      $this->get_relations_from_rels_sys($relations, $fedora_rels_obj, $rels_type, $filter, $format);
     }
 
     $ret = $rec;
@@ -1435,6 +1345,102 @@ class openSearch extends webServiceServer {
     }
 
     return $ret;
+  }
+
+  /** \brief Handle relations comming from local_data streams
+   *
+   */
+  private function get_relations_from_local_stream(&$relations, $rec_id, $rels_type) {
+    static $stream_dom;
+    $this->get_fedora_datastreams($rec_id, $fedora_streams);
+    if (empty($stream_dom)) {
+      $stream_dom = new DomDocument();
+    }
+    if (@ !$stream_dom->loadXML($fedora_streams)) {
+      verbose::log(DEBUG, 'Cannot load STREAMS for ' . $rec_id . ' into DomXml');
+    } else {
+      if ($rels_type == 'type' || $rels_type == 'uri' || $rels_type == 'full') {
+        foreach ($stream_dom->getElementsByTagName('datastream') as $node) {
+          if (substr($node->getAttribute('ID'), 0, 9) == 'localData') {
+            $dub_check = array();
+            foreach ($node->getElementsByTagName('link') as $link) {
+              $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
+              if (empty($dup_check[$url])) {
+                if (!$relation->relationType->_value = $link->getelementsByTagName('relationType')->item(0)->nodeValue) {
+                  $relation->relationType->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
+                };
+                if ($rels_type == 'uri' || $rels_type == 'full') {
+                  $relation->relationUri->_value = $url;
+                  $relation->linkObject->_value->accessType->_value = 
+                      $link->getelementsByTagName('accessType')->item(0)->nodeValue;
+                  $relation->linkObject->_value->access->_value = 
+                      $link->getelementsByTagName('access')->item(0)->nodeValue;
+                  $relation->linkObject->_value->linkTo->_value = 
+                      $link->getelementsByTagName('LinkTo')->item(0)->nodeValue;
+                }
+                $dup_check[$url] = TRUE;
+                $relations->relation[]->_value = $relation;
+                unset($relation);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /** \brief Handle relations comming from local_data streams
+   *
+   */
+  private function get_relations_from_rels_sys(&$relations, $fedora_rels_obj, $rels_type, $filter, $format) {
+    static $rels_dom, $allowed_relation;
+    if (!isset($allowed_relation)) {
+      $allowed_relation = $this->config->get_value('relation', 'setup');
+    }
+    if (empty($rels_dom)) {
+      $rels_dom = new DomDocument();
+    }
+    @ $rels_dom->loadXML($fedora_rels_obj);
+    if ($rels_dom->getElementsByTagName('Description')->item(0)) {
+      foreach ($rels_dom->getElementsByTagName('Description')->item(0)->childNodes as $tag) {
+        if ($tag->nodeType == XML_ELEMENT_NODE) {
+          if ($rel_prefix = array_search($tag->getAttribute('xmlns'), $this->xmlns))
+            $this_relation = $rel_prefix . ':' . $tag->localName;
+          else
+            $this_relation = $tag->localName;
+          $relation_type = $allowed_relation[$this_relation];
+          if ($relation_type
+           && $relation_count[$this_relation]++ < MAX_IDENTICAL_RELATIONS
+           && $this->check_valid_relation($rec_id, $tag->nodeValue, $this_relation, $this->search_profile)) {
+            if ($relation_type <> REL_TO_INTERNAL_OBJ || $this->is_searchable($tag->nodeValue, $filter)) {
+              $relation->relationType->_value = $this_relation;
+              if ($rels_type == 'uri' || $rels_type == 'full') {
+                $this->get_fedora_rels_ext($tag->nodeValue, $rels_sys);
+                $rel_uri = $this->fetch_primary_bib_object($rels_sys);
+                $relation->relationUri->_value = $rel_uri;
+              }
+              if ($rels_type == 'full' && $relation_type == REL_TO_INTERNAL_OBJ) {
+                $this->get_fedora_raw($rel_uri, $related_obj);
+                if (@ !$rels_dom->loadXML($related_obj)) {
+                  verbose::log(FATAL, 'Cannot load ' . $rel_uri . ' object for ' . $rec_id . ' into DomXml');
+                }
+                else {
+                  $rel_obj = &$relation->relationObject->_value->object->_value;
+                  $rel_obj = $this->extract_record($rels_dom, $tag->nodeValue, $format);
+                  $rel_obj->identifier->_value = $rel_uri;
+                  $rel_obj->creationDate->_value = $this->get_creation_date($rels_dom);
+                  $rel_obj->formatsAvailable->_value = $this->scan_for_formats($rels_dom);
+                }
+              }
+              if ($rels_type == 'type' || $relation->relationUri->_value) {
+                $relations->relation[]->_value = $relation;
+              }
+              unset($relation);
+            }
+          }
+        }
+      }  // foreach ...
+    }
   }
 
   /** \brief Extract record and namespace for it
