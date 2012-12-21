@@ -118,6 +118,9 @@ profile_fallback = @AGENCY_PROFILE_FALLBACK@
 ;raw_index[] = facet.
 ;raw_index[] = phrase.
 
+; maximum number of identical relationnames returned
+max_identical_relation_names = 20
+
 ; relations which can be returned
 ; relation["prefix:relationname"] = [12]
 ; - prefix has to be declared with namespace in xmlns (above)
