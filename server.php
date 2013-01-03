@@ -429,7 +429,7 @@ class openSearch extends webServiceServer {
                        '&q=' . urlencode($q) .
                        '&fq=' . $filter_q .
                        '&start=0' .
-                       '&rows=' . $no_of_rows . 
+                       '&rows=' . '999999' . // $no_of_rows . 
                        '&defType=edismax' .
                        '&fl=unit.id' . $add_fl;
           if ($rank_qf) $post_query .= '&qf=' . $rank_qf;
