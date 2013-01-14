@@ -457,7 +457,7 @@ class openSearch extends webServiceServer {
                   $p_id = &$fdoc['unit.id'][0];
                   if ($p_id == $w) {
                     $hit_fid_array[] = $w;
-                    $unit_sort_keys[$w] = $fdoc['sort.complexKey'];
+                    $unit_sort_keys[$w] = $fdoc['sort.complexKey'] . '  ' . $p_id;
                     break 2;
                   }
                 }
