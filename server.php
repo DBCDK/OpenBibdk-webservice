@@ -384,8 +384,9 @@ class openSearch extends webServiceServer {
     define('MAX_QUERY_ELEMENTS', 950);
     $block_idx = $no_bool = 0;
     if (DEBUG_ON) echo 'work_ids: ' . print_r($work_ids, TRUE) . "\n";
-    if ($format['found_solr_format'] ||
-        ($use_work_collection && ($this->xs_boolean($param->allObjects->_value) || $filter_agency))) {
+    if ($use_work_collection) {
+//    if ($format['found_solr_format'] ||
+//        ($use_work_collection && ($this->xs_boolean($param->allObjects->_value) || $filter_agency))) {
       $no_of_rows = 1;
       $add_query[$block_idx] = '';
       foreach ($work_ids as $w_no => $w) {
@@ -404,20 +405,14 @@ class openSearch extends webServiceServer {
       if (!empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {    // use post here because query can be very long
         $which_rec_id = 'unit.id';
         foreach ($add_query as $add_idx => $add_q) {
-          if (!$this->xs_boolean($param->allObjects->_value)) {
-            $chk_query = $this->cql2solr->edismax_convert('(' . $param->query->_value . ') ' . AND_OP . ' ' . $which_rec_id . '=(' . $add_q . ')', $rank_type[$rank]);
-            $q = $chk_query['edismax'];
-          }
-          elseif ($filter_agency) {
-            $chk_query = $this->cql2solr->edismax_convert($which_rec_id . '=(' . $add_q . ')');
-            $q = $chk_query['edismax'];
+          if ($this->xs_boolean($param->allObjects->_value)) {
+            $combine_query = '';
           }
           else {
-            verbose::log(FATAL, 'Internal problem: Assert error. Line: ' . __LINE__);
-            $error = 'Internal problem: Assert error. Line: ' . __LINE__;
-            return $ret_error;
+            $combine_query = '(' . $param->query->_value . ') ' . AND_OP . ' ';
           }
-          // need to remove unwanted object from work_ids
+          $chk_query = $this->cql2solr->edismax_convert($combine_query . $which_rec_id . '=(' . $add_q . ')', $rank_type[$rank]);
+          $q = $chk_query['edismax'];
           if ($format['found_solr_format']) {
             foreach ($format as $f) {
               if ($f[is_solr_format]) {
@@ -431,7 +426,7 @@ class openSearch extends webServiceServer {
                        '&start=0' .
                        '&rows=' . '999999' . // $no_of_rows . 
                        '&defType=edismax' .
-                       '&fl=unit.id' . $add_fl;
+                       '&fl=unit.id,sort.complexKey' . $add_fl;
           if ($rank_qf) $post_query .= '&qf=' . $rank_qf;
           if ($rank_pf) $post_query .= '&pf=' . $rank_pf;
           if ($rank_tie) $post_query .= '&tie=' . $rank_tie;
@@ -462,6 +457,7 @@ class openSearch extends webServiceServer {
                   $p_id = &$fdoc['unit.id'][0];
                   if ($p_id == $w) {
                     $hit_fid_array[] = $w;
+                    $unit_sort_keys[$w] = $fdoc['sort.complexKey'];
                     break 2;
                   }
                 }
@@ -491,66 +487,85 @@ class openSearch extends webServiceServer {
     $this->watch->start('get_recs');
     $collections = array();
     $rec_no = max(1, $start);
-    foreach ($work_ids as $work) {
+    foreach ($work_ids as &$work) {
       $objects = array();
-      foreach ($work as $fpid) {
-        if ($param->collectionType->_value <> 'work-1' || empty($objects)) {
-          $this->get_fedora_rels_addi($fpid, $fedora_addi_relation);
-          $this->get_fedora_rels_ext($fpid, $unit_rels_ext);
-          list($fpid, $unit_members) = $this->parse_unit_for_object_ids($unit_rels_ext);
-          if ($this->xs_boolean($param->includeHoldingsCount->_value)) {
-            $no_of_holdings = $this->get_holdings($fpid);
-          }
-          if ($error = $this->get_fedora_raw($fpid, $fedora_result)) {
-// fetch empty record from ini-file and use instead of error
-            if ($missing_record) {
-              $error = NULL;
-              $fedora_result = sprintf($missing_record, $fpid);
-            }
-            else {
-              return $ret_error;
-            }
-          }
-          if ($debug_query) {
-            unset($explain);
-            foreach ($solr_arr['response']['docs'] as $solr_idx => $solr_rec) {
-              if ($fpid == $solr_rec['fedoraPid']) {
-                //$strange_idx = $solr_idx ? ' '.$solr_idx : '';
-                $explain = $solr_arr['debug']['explain'][$fpid];
-                break;
-              }
-            }
-
-          }
-          $objects[]->_value =
-            $this->parse_fedora_object($fedora_result,
-                                       $fedora_addi_relation,
-                                       $param->relationData->_value,
-                                       $fpid,
-                                       NULL, // no $filter_agency on search - bad performance
-                                       $format,
-                                       $no_of_holdings,
-                                       $explain);
-        } else {
-          $this->get_fedora_rels_ext($fpid, $unit_rels_ext);
-          list($fpid, $unit_members) = $this->parse_unit_for_object_ids($unit_rels_ext);
-          $objects[]->_value->identifier->_value = $fpid;
+      foreach ($work as $unit_id) {
+        $this->get_fedora_rels_addi($unit_id, $fedora_addi_relation);
+        $this->get_fedora_rels_ext($unit_id, $unit_rels_ext);
+        list($fpid, $unit_members) = $this->parse_unit_for_object_ids($unit_rels_ext);
+        if ($this->xs_boolean($param->includeHoldingsCount->_value)) {
+          $no_of_holdings = $this->get_holdings($fpid);
         }
-        // else $objects[]->_value = NULL;
+        $fpid_sort_keys[$fpid] = str_replace(' holdings ', sprintf(' %04d ', no_of_holdings), $unit_sort_keys[$unit_id]);
+        if ($error = $this->get_fedora_raw($fpid, $fedora_result)) {
+// fetch empty record from ini-file and use instead of error
+          if ($missing_record) {
+            $error = NULL;
+            $fedora_result = sprintf($missing_record, $fpid);
+          }
+          else {
+            return $ret_error;
+          }
+        }
+        if ($debug_query) {
+          unset($explain);
+          foreach ($solr_arr['response']['docs'] as $solr_idx => $solr_rec) {
+            if ($fpid == $solr_rec['fedoraPid']) {
+              //$strange_idx = $solr_idx ? ' '.$solr_idx : '';
+              $explain = $solr_arr['debug']['explain'][$fpid];
+              break;
+            }
+          }
+
+        }
+        $sort_key = $fpid_sort_keys[$fpid] . sprintf('%04d', count($objects));
+        $sorted_work[$sort_key] = $unit_id;
+        $objects[$sort_key]->_value =
+          $this->parse_fedora_object($fedora_result,
+                                     $fedora_addi_relation,
+                                     $param->relationData->_value,
+                                     $fpid,
+                                     NULL, // no $filter_agency on search - bad performance
+                                     $format,
+                                     $no_of_holdings,
+                                     $explain);
       }
+      $work = $sorted_work;
+      unset($sorted_work);
       $o->collection->_value->resultPosition->_value = $rec_no++;
       $o->collection->_value->numberOfObjects->_value = count($objects);
+      if (count($objects) > 1) {
+        ksort($objects);
+      }
       $o->collection->_value->object = $objects;
       $collections[]->_value = $o;
       unset($o);
     }
     $this->watch->stop('get_recs');
 
+  // TODO: if an openFormat is specified, we need to remove data so openFormat dont format unneeded stuff
+  // But apparently, openFormat breaks when receiving an empty object
+    if ($param->collectionType->_value == 'work-1') {
+      foreach ($collections as &$c) {
+        $keep_rec = TRUE;
+        foreach ($c->_value->collection->_value->object as &$o) {
+          if ($keep_rec) {
+            foreach ($o->_value as $tag => $val) {
+              if (!in_array($tag, array('identifier', 'creationDate', 'formatsAvailable'))) {
+                unset($o->_value->$tag);
+              }
+            }
+            $keep_rec = FALSE;
+          }
+        }
+      }
+    }
+
     if ($format['found_open_format']) {
       $this->format_records($collections, $format);
     }
     if ($format['found_solr_format']) {
-      $this->format_solr($collections, $format, $solr_2_arr, $work_ids, $param->collectionType->_value == 'work-1');
+      $this->format_solr($collections, $format, $solr_2_arr, $work_ids, $fpid_sort_keys);
     }
     $this->remove_unselected_formats($collections, $format);
 
@@ -819,7 +834,7 @@ class openSearch extends webServiceServer {
   /** \brief Pick tags from solr result and create format
    *
    */
-  private function format_solr(&$collections, $format, $solr, &$work_ids, $work_1 = FALSE) {
+  private function format_solr(&$collections, $format, $solr, &$work_ids, $fpid_sort_keys = array()) {
     $solr_display_ns = $this->xmlns['ds'];
     $this->watch->start('format_solr');
     foreach ($format as $format_name => $format_arr) {
@@ -829,9 +844,9 @@ class openSearch extends webServiceServer {
           $rec_no = $c->_value->collection->_value->resultPosition->_value;
           foreach ($work_ids[$rec_no] as $mani_no => $unit_no) {
             if (is_array($solr[0]['response']['docs'])) {
+              $fpid = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
               foreach ($solr[0]['response']['docs'] as $solr_doc) {
                 if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
-                  $mani->_namespace = $solr_display_ns;
                   foreach ($format_tags as $format_tag) {
                     if ($solr_doc[$format_tag] || $format_tag == 'fedora.identifier') {
                       if (strpos($format_tag, '.')) {
@@ -842,14 +857,14 @@ class openSearch extends webServiceServer {
                       }
                       $mani->_value->$tag_value->_namespace = $solr_display_ns;
                       if ($format_tag == 'fedora.identifier') {
-                        $mani->_value->$tag_value->_value = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
+                        $mani->_value->$tag_value->_value = $fpid;
                       }
                       else {
                         if (is_array($solr_doc[$format_tag])) {
-                          $mani->_value->$tag_value->_value = $this->char_norm($solr_doc[$format_tag][0]);
+                          $mani->_value->$tag_value->_value = $this->normalize_chars($solr_doc[$format_tag][0]);
                         }
                         else {
-                          $mani->_value->$tag_value->_value = $this->char_norm($solr_doc[$format_tag]);
+                          $mani->_value->$tag_value->_value = $this->normalize_chars($solr_doc[$format_tag]);
                         }
                       }
                     }
@@ -859,14 +874,14 @@ class openSearch extends webServiceServer {
               }
             }
             if ($mani) {   // should contain data, but for some odd reason it can be empty. Some bug in the solr-indexes?
-		      $manifestation->manifestation[] = $mani;
+              $mani->_namespace = $solr_display_ns;
+              $sort_key = $fpid_sort_keys[$fpid] . sprintf('%04d', $mani_no);
+		      $manifestation->manifestation[$sort_key] = $mani;
             }
             unset($mani);
-            if ($work_1) {
-              break;
-            }
           }
 // need to loop thru objects to put data correct
+          ksort($manifestation->manifestation);
           $c->_value->formattedCollection->_value->$format_name->_namespace = $solr_display_ns;
           $c->_value->formattedCollection->_value->$format_name->_value = $manifestation;
           unset($manifestation);
@@ -994,7 +1009,7 @@ class openSearch extends webServiceServer {
       $this->number_of_fedora_calls++;
       $this->curl->set_authentication('fedoraAdmin', 'fedoraAdmin');
       $this->watch->start('fedora');
-      $rec = $this->char_norm($this->curl->get($record_uri));
+      $rec = $this->normalize_chars($this->curl->get($record_uri));
       $this->watch->stop('fedora');
       $curl_err = $this->curl->get_status();
       if ($curl_err['http_code'] < 200 || $curl_err['http_code'] > 299) {
@@ -1518,7 +1533,7 @@ class openSearch extends webServiceServer {
     return $ret;
   }
 
-  private function char_norm($s) {
+  private function normalize_chars($s) {
     $from[] = "\xEA\x9C\xB2"; $to[] = 'Aa';
     $from[] = "\xEA\x9C\xB3"; $to[] = 'aa';
     $from[] = "\XEF\x83\xBC"; $to[] = "\xCC\x88";   // U+F0FC -> U+0308
