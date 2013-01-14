@@ -570,7 +570,7 @@ class openSearch extends webServiceServer {
     $this->remove_unselected_formats($collections, $format);
 
 // try to get a better hitCount by looking for primaryObjects only 
-    if (($start == 1) && $more) {
+    if (($start > 1) || $more) {
 // ignore errors here
       $err = $this->get_solr_array($solr_query['edismax'] . ' AND unit.isPrimaryObject:true', 0, 0, '', '', '', $filter_q, '', $debug_query, $solr_arr);
       if ($solr_arr['response']['numFound'] > 0) {
