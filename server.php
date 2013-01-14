@@ -881,7 +881,9 @@ class openSearch extends webServiceServer {
             unset($mani);
           }
 // need to loop thru objects to put data correct
-          ksort($manifestation->manifestation);
+          if (is_array($manifestation->manifestation)) {
+            ksort($manifestation->manifestation);
+          }
           $c->_value->formattedCollection->_value->$format_name->_namespace = $solr_display_ns;
           $c->_value->formattedCollection->_value->$format_name->_value = $manifestation;
           unset($manifestation);
