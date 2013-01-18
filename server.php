@@ -385,8 +385,6 @@ class openSearch extends webServiceServer {
     $block_idx = $no_bool = 0;
     if (DEBUG_ON) echo 'work_ids: ' . print_r($work_ids, TRUE) . "\n";
     if ($use_work_collection && $step_value) {
-//    if ($format['found_solr_format'] ||
-//        ($use_work_collection && ($this->xs_boolean($param->allObjects->_value) || $filter_agency))) { }
       $no_of_rows = 1;
       $add_query[$block_idx] = '';
       foreach ($work_ids as $w_no => $w) {
