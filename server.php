@@ -559,13 +559,15 @@ class openSearch extends webServiceServer {
       }
     }
 
-    if ($format['found_open_format']) {
-      $this->format_records($collections, $format);
+    if ($step_value) {
+      if ($format['found_open_format']) {
+        $this->format_records($collections, $format);
+      }
+      if ($format['found_solr_format']) {
+        $this->format_solr($collections, $format, $solr_2_arr, $work_ids, $fpid_sort_keys);
+      }
+      $this->remove_unselected_formats($collections, $format);
     }
-    if ($format['found_solr_format']) {
-      $this->format_solr($collections, $format, $solr_2_arr, $work_ids, $fpid_sort_keys);
-    }
-    $this->remove_unselected_formats($collections, $format);
 
 // try to get a better hitCount by looking for primaryObjects only 
     if (($start > 1) || $more) {
