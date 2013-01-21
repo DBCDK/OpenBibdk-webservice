@@ -961,7 +961,7 @@ class openSearch extends webServiceServer {
           $state = $dom->getElementsByTagName('objState')->item(0)->nodeValue;
       }
     }
-    return $state == "D";
+    return $state == 'D';
   }
 
   /** \brief
