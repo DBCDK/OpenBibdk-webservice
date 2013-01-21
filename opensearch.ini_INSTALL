@@ -65,7 +65,7 @@ default_repository = @REPOSITORY_NAME@
 ; - solr: url to solr-server
 ; - fedora_get_raw: url to get raw record from fedora
 ; - fedora_get_rels_ext: url to get rels_ext_record from fedora
-; - fedora_get_object_profile: url to get rels_ext_record from fedora
+; - fedora_get_object_profile: url to get object state/profile from fedora - if not set, deleted records will be returned
 ; - search_profile_version: 2 (using submitter and original_format) or 3 (using rec.collectionIdentifier)
 
 repository[@REPOSITORY_NAME@][solr] = @SOLR@
