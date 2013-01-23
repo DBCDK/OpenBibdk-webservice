@@ -54,6 +54,7 @@ class openSearch extends webServiceServer {
     if (!$mir = $this->config->get_value('max_identical_relation_names', 'setup'))
       $mir = 20;
     define(MAX_IDENTICAL_RELATIONS, $mir);
+    define(MAX_OBJECTS_IN_WORK, 100);
   }
 
   /**
@@ -158,14 +159,14 @@ class openSearch extends webServiceServer {
 
     /**
     *  Approach
-    *  a) Do the solr search and fetch enough fedoraPids in result
-    *  b) Fetch a fedoraPids work-object unless the record has been found
+    *  a) Do the solr search and fetch enough unit-ids in result
+    *  b) Fetch a unit-ids work-object unless the record has been found
     *     in an earlier handled work-objects
-    *  c) Collect fedoraPids in this work-object
-    *  d) repeat b. and c. until the requeste number of objects is found
+    *  c) Collect unit-ids in this work-object
+    *  d) repeat b. and c. until the request number of objects is found
     *  e) if allObject is not set, do a new search combined the users search
-    *     with an or'ed list of the fedoraPids in the active objects and
-    *     remove the fedoraPids not found in the result
+    *     with an or'ed list of the unit-ids in the active objects and
+    *     remove the unit-ids not found in the result
     *  f) Read full records fom fedora for objects in result
     *
     *  if $use_work_collection is FALSE skip b) to e)
@@ -197,9 +198,6 @@ class openSearch extends webServiceServer {
     // ' is handled differently in indexing and searching, so remove it until this is solved
     $query = $this->cql2solr->convert(str_replace("'", '', $param->query->_value), $rank_type[$rank]);
     $solr_query = $this->cql2solr->edismax_convert($param->query->_value, $rank_type[$rank]);
-//print_r($query);
-//print_r($solr_query);
-//die('test');
     //$query = $this->cql2solr->convert($param->query->_value, $rank_type[$rank]);
     if (!$solr_query['operands']) {
       $error = 'Error: No query found in request';
@@ -296,7 +294,7 @@ class openSearch extends webServiceServer {
       //if (DEBUG_ON) print_r($local_data);
 
       for ($s_idx = 0; isset($search_ids[$s_idx]); $s_idx++) {
-        $fpid = &$search_ids[$s_idx];
+        $uid = &$search_ids[$s_idx];
         if (!isset($search_ids[$s_idx+1]) && count($search_ids) < $numFound) {
           $this->watch->start('Solr_add');
           verbose::log(FATAL, 'To few search_ids fetched from solr. Query: ' . $solr_query['edismax']);
@@ -312,12 +310,12 @@ class openSearch extends webServiceServer {
           $this->watch->stop('Solr_add');
         }
         if (FALSE) {
-          $this->get_fedora_rels_ext($fpid, $unit_result);
+          $this->get_fedora_rels_ext($uid, $unit_result);
           $unit_id = $this->parse_rels_for_unit_id($unit_result);
-          if (DEBUG_ON) echo 'UR: ' . $fpid . ' -> ' . $unit_id . "\n";
-          $fpid = $unit_id;
+          if (DEBUG_ON) echo 'UR: ' . $uid . ' -> ' . $unit_id . "\n";
+          $uid = $unit_id;
         }
-        if ($used_search_fids[$fpid]) continue;
+        if ($used_search_fids[$uid]) continue;
         if (count($work_ids) >= $step_value) {
           $more = TRUE;
           break;
@@ -325,14 +323,14 @@ class openSearch extends webServiceServer {
 
         $w_no++;
         // find relations for the record in fedora
-        // fpid: id as found in solr's fedoraPid
+        // uid: id as found in solr's fedoraPid
         if ($work_struct[$w_no]) {
-          $fpid_array = $work_struct[$w_no];
+          $uid_array = $work_struct[$w_no];
         }
         else {
           if ($use_work_collection) {
             $this->watch->start('get_w_id');
-            $this->get_fedora_rels_ext($fpid, $record_rels_ext);
+            $this->get_fedora_rels_ext($uid, $record_rels_ext);
             /* ignore the fact that there is no RELS_EXT datastream
             */
             $this->watch->stop('get_w_id');
@@ -344,31 +342,35 @@ class openSearch extends webServiceServer {
               $this->get_fedora_rels_ext($work_id, $work_rels_ext);
               if (DEBUG_ON) echo 'WR: ' . $work_rels_ext . "\n";
               $this->watch->stop('get_fids');
-              if (!$fpid_array = $this->parse_work_for_object_ids($work_rels_ext, $fpid)) {
-                verbose::log(FATAL, 'Fedora fetch/parse work-record: ' . $work_id . ' refered from: ' . $fpid);
-                $fpid_array = array($fpid);
+              if (!$uid_array = $this->parse_work_for_object_ids($work_rels_ext, $uid)) {
+                verbose::log(FATAL, 'Fedora fetch/parse work-record: ' . $work_id . ' refered from: ' . $uid);
+                $uid_array = array($uid);
+              }
+              if (count($uid_array) >= MAX_OBJECTS_IN_WORK) {
+                verbose::log(FATAL, 'Fedora work-record: ' . $work_id . ' refered from: ' . $uid . ' contains ' . count($uid_array) . ' objects');
+                array_splice($uid_array, MAX_OBJECTS_IN_WORK);
               }
               if (DEBUG_ON) {
-                echo 'fid: ' . $fpid . ' -> ' . $work_id . " -> object(s):\n";
-                print_r($fpid_array);
+                echo 'fid: ' . $uid . ' -> ' . $work_id . " -> object(s):\n";
+                print_r($uid_array);
               }
             }
             else
-              $fpid_array = array($fpid);
+              $uid_array = array($uid);
           }
           else
-            $fpid_array = array($fpid);
-          $work_struct[$w_no] = $fpid_array;
+            $uid_array = array($uid);
+          $work_struct[$w_no] = $uid_array;
         }
-        if (DEBUG_ON) print_r($fpid_array);
+        if (DEBUG_ON) print_r($uid_array);
 
-        foreach ($fpid_array as $id) {
+        foreach ($uid_array as $id) {
           $used_search_fids[$id] = TRUE;
           if ($w_no >= $start)
             $work_ids[$w_no][] = $id;
         }
         if ($w_no >= $start)
-          $work_ids[$w_no] = $fpid_array;
+          $work_ids[$w_no] = $uid_array;
       }
     }
 
@@ -443,6 +445,7 @@ class openSearch extends webServiceServer {
           if (!($solr_2_arr[$add_idx] = unserialize($solr_result))) {
             verbose::log(FATAL, 'Internal problem: Cannot decode Solr re-search');
             $error = 'Internal problem: Cannot decode Solr re-search';
+//die();
             return $ret_error;
           }
         }
@@ -1263,7 +1266,7 @@ class openSearch extends webServiceServer {
   /** \brief Parse a work relation and return array of ids
    *
    */
-  private function parse_work_for_object_ids($w_rel, $fpid) {
+  private function parse_work_for_object_ids($w_rel, $uid) {
     static $dom;
     $res = array();
     if (empty($dom)) {
@@ -1272,13 +1275,13 @@ class openSearch extends webServiceServer {
     $dom->preserveWhiteSpace = false;
     if (@ $dom->loadXML($w_rel)) {
       $res = array();
-      $res[] = $fpid;
+      $res[] = $uid;
       //$hpuo = $dom->getElementsByTagName('hasPrimaryUnitObject');
       //if ($hpuo->item(0))
         //$res[] = $puo = $hpuo->item(0)->nodeValue;
       $r_list = $dom->getElementsByTagName('hasMemberOfWork');
       foreach ($r_list as $r) {
-        if ($r->nodeValue <> $fpid) $res[] = $r->nodeValue;
+        if ($r->nodeValue <> $uid) $res[] = $r->nodeValue;
       }
       return $res;
     }
