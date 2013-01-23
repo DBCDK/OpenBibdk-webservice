@@ -606,6 +606,7 @@ class openSearch extends webServiceServer {
     $result->statInfo->_value->fedoraRecordsCached->_value = $this->number_of_fedora_cached;
     $result->statInfo->_value->fedoraRecordsRead->_value = $this->number_of_fedora_calls;
     $result->statInfo->_value->time->_value = $this->watch->splittime('Total');
+    $result->statInfo->_value->trackingId->_value = $this->tracking_id;
 
 
     //print_r($collections[0]);
@@ -750,7 +751,10 @@ class openSearch extends webServiceServer {
     $result->more->_value = 'false';
     $result->searchResult = $collections;
     $result->facetResult->_value = '';
-    $result->time->_value = $this->watch->splittime('Total');
+    $result->statInfo->_value->fedoraRecordsCached->_value = $this->number_of_fedora_cached;
+    $result->statInfo->_value->fedoraRecordsRead->_value = $this->number_of_fedora_calls;
+    $result->statInfo->_value->time->_value = $this->watch->splittime('Total');
+    $result->statInfo->_value->trackingId->_value = $this->tracking_id;
 
     //print_r($param);
     //print_r($fedora_result);
