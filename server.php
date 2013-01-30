@@ -23,7 +23,7 @@
 //-----------------------------------------------------------------------------
 require_once('OLS_class_lib/webServiceServer_class.php');
 require_once 'OLS_class_lib/memcache_class.php';
-require_once 'OLS_class_lib/cql2solr_class.php';
+require_once 'OLS_class_lib/solr_query_class.php';
 
 //-----------------------------------------------------------------------------
 define(REL_TO_INTERNAL_OBJ, 1);       // relation points to internal object
@@ -193,12 +193,12 @@ class openSearch extends webServiceServer {
       define('OR_OP', 'OR');
       $param->queryLanguage->_value = 'cqleng';
     }
-    $this->cql2solr = new cql2solr('opensearch_cql.xml', $this->config, $param->queryLanguage->_value);
-    // urldecode ???? $query = $this->cql2solr->convert(urldecode($param->query->_value));
-    // ' is handled differently in indexing and searching, so remove it until this is solved
-    $query = $this->cql2solr->convert(str_replace("'", '', $param->query->_value), $rank_type[$rank]);
-    $solr_query = $this->cql2solr->edismax_convert($param->query->_value, $rank_type[$rank]);
-    //$query = $this->cql2solr->convert($param->query->_value, $rank_type[$rank]);
+    $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config, $param->queryLanguage->_value);
+    $solr_query = $this->cql2solr->cql_2_edismax($param->query->_value);
+    if ($solr_query['error']) {
+      $error = $solr_query['error'];
+      return $ret_error;
+    }
     if (!$solr_query['operands']) {
       $error = 'Error: No query found in request';
       return $ret_error;
@@ -411,7 +411,11 @@ class openSearch extends webServiceServer {
           else {
             $combine_query = '(' . $param->query->_value . ') ' . AND_OP . ' ';
           }
-          $chk_query = $this->cql2solr->edismax_convert($combine_query . $which_rec_id . '=(' . $add_q . ')', $rank_type[$rank]);
+          $chk_query = $this->cql2solr->cql_2_edismax($combine_query . $which_rec_id . '=(' . $add_q . ')');
+          if ($chk_query['error']) {
+            $error = $chk_query['error'];
+            return $ret_error;
+          }
           $q = $chk_query['edismax'];
           if ($format['found_solr_format']) {
             foreach ($format as $f) {
@@ -420,9 +424,9 @@ class openSearch extends webServiceServer {
               }
             }
           }
-          $post_query = 'wt=phps' .
-                       '&q=' . urlencode($q) .
+          $post_query = 'q=' . urlencode($q) .
                        '&fq=' . $filter_q .
+                       '&wt=phps' .
                        '&start=0' .
                        '&rows=' . '999999' . // $no_of_rows . 
                        '&defType=edismax' .
@@ -430,6 +434,7 @@ class openSearch extends webServiceServer {
           if ($rank_qf) $post_query .= '&qf=' . $rank_qf;
           if ($rank_pf) $post_query .= '&pf=' . $rank_pf;
           if ($rank_tie) $post_query .= '&tie=' . $rank_tie;
+          verbose::log(DEBUG, 'Re-search: ' . $this->repository['solr'] . '?' . str_replace('&wt=phps', '', $post_query) . '&debugQuery=on');
 
           if (DEBUG_ON) {
             echo 'post_array: ' . $this->repository['solr'] . '?' . $post_query . "\n";
@@ -731,7 +736,7 @@ class openSearch extends webServiceServer {
           $add_fl .= ',' . $f['format_name'];
         }
       }
-      $chk_query = $this->cql2solr->edismax_convert('unit.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
+      $chk_query = $this->cql2solr->cql_2_edismax('unit.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
       $solr_q = $this->repository['solr'] .
                 '?wt=phps' .
                 '&q=' . urlencode($chk_query['edismax']) .
