@@ -1148,6 +1148,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Id (unit)</title>
+			<title lang="en">Identifier (unit)</title>
+			<map>
+				<name set="unit">id</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Adgangsmåde (enkeltord)</title>
 			<title lang="en">Access type (term)</title>
 			<map>
@@ -1261,5 +1268,7 @@ You should have received a copy of the GNU Affero General Public License along w
 		<supports type="relation">adj</supports>
 		<supports type="maskingCharacter">?</supports>
 		<supports type="maskingCharacter">*</supports>
+		<supports type="booleanChar">(</supports>
+		<supports type="booleanChar">)</supports>
 	</configInfo>
 </explain>
