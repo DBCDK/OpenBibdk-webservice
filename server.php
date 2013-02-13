@@ -583,7 +583,7 @@ class openSearch extends webServiceServer {
       $err = $this->get_solr_array($solr_query['edismax'] . ' AND unit.isPrimaryObject:true', 0, 0, '', '', '', $filter_q, '', $debug_query, $solr_arr);
       if ($solr_arr['response']['numFound'] > 0) {
         verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $solr_arr['response']['numFound']);
-        $numFound = $solr_arr['response']['numFound'] . ' (' . $numFound . ')';
+        $numFound = $solr_arr['response']['numFound'];
       }
     }
 
