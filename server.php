@@ -502,7 +502,7 @@ class openSearch extends webServiceServer {
         if ($this->xs_boolean($param->includeHoldingsCount->_value)) {
           $no_of_holdings = $this->get_holdings($fpid);
         }
-        $fpid_sort_keys[$fpid] = str_replace(' holdings ', sprintf(' %04d ', no_of_holdings), $unit_sort_keys[$unit_id]);
+        $fpid_sort_keys[$fpid] = str_replace(' holdings ', sprintf(' %04d ', 9999 - intval($no_of_holdings['have'])), $unit_sort_keys[$unit_id]);
         if ($error = $this->get_fedora_raw($fpid, $fedora_result)) {
 // fetch empty record from ini-file and use instead of error
           if ($missing_record) {
@@ -524,7 +524,7 @@ class openSearch extends webServiceServer {
           }
 
         }
-        $sort_key = $fpid_sort_keys[$fpid] . sprintf('%04d', count($objects));
+        $sort_key = $fpid_sort_keys[$fpid] . sprintf('%04d', 9999 - count($objects));
         $sorted_work[$sort_key] = $unit_id;
         $objects[$sort_key]->_value =
           $this->parse_fedora_object($fedora_result,
