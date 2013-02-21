@@ -114,9 +114,10 @@ solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid
 agency_fallback = @AGENCY_FALLBACK@
 profile_fallback = @AGENCY_PROFILE_FALLBACK@
 
-; raw_index - old feature, do not include
-;raw_index[] = facet.
-;raw_index[] = phrase.
+; phrase indexes
+phrase_index[] = facet
+phrase_index[] = phrase
+phrase_index[] = dkcclphrase
 
 ; maximum number of identical relationnames returned
 max_identical_relation_names = 20
