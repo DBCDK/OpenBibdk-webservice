@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://oss.dbc.dk/ns/opensearch">
+	<SOAP-ENV:Body>
+		<searchResponse>
+			<result>
+				<hitCount>4</hitCount>
+				<collectionCount>3</collectionCount>
+				<more>false</more>
+				<searchResult>
+					<collection>
+						<resultPosition>1</resultPosition>
+						<numberOfObjects>1</numberOfObjects>
+						<object>
+							<identifier>870971-tsart:34497745</identifier>
+							<creationDate/>
+							<formatsAvailable/>
+						</object>
+					</collection>
+					<formattedCollection>
+						<briefDisplay>
+							<manifestation>
+								<accessType>physical</accessType>
+								<creator>Viktor Eriksson</creator>
+								<identifier>870971-tsart:34497745</identifier>
+								<language>Dansk</language>
+								<partOf>Game reactor, Nr. 115 (2011)</partOf>
+								<title>Blandt drager og dæmoner</title>
+								<type>Tidsskriftsartikel</type>
+								<workType>article</workType>
+							</manifestation>
+						</briefDisplay>
+					</formattedCollection>
+				</searchResult>
+				<searchResult>
+					<collection>
+						<resultPosition>2</resultPosition>
+						<numberOfObjects>1</numberOfObjects>
+						<object>
+							<identifier>870970-basis:45235394</identifier>
+							<creationDate>2012-05-25</creationDate>
+							<formatsAvailable/>
+						</object>
+					</collection>
+					<formattedCollection>
+						<briefDisplay>
+							<manifestation>
+								<accessType>physical</accessType>
+								<identifier>870970-basis:45235394</identifier>
+								<language>Engelsk</language>
+								<title>Elder scrolls V</title>
+								<type>Bog</type>
+								<workType>book</workType>
+							</manifestation>
+						</briefDisplay>
+					</formattedCollection>
+				</searchResult>
+				<searchResult>
+					<collection>
+						<resultPosition>3</resultPosition>
+						<numberOfObjects>2</numberOfObjects>
+						<object>
+							<identifier>870970-basis:29069654</identifier>
+							<creationDate>2011-11-14</creationDate>
+							<formatsAvailable/>
+						</object>
+						<object>
+							<identifier>870970-basis:29069638</identifier>
+							<creationDate>2011-11-14</creationDate>
+							<formatsAvailable/>
+						</object>
+					</collection>
+					<formattedCollection>
+						<briefDisplay>
+							<manifestation>
+								<identifier>870970-basis:29069654</identifier>
+								<title>Skyrim</title>
+								<type>Playstation 3</type>
+								<workType>game</workType>
+							</manifestation>
+							<manifestation>
+								<identifier>870970-basis:29069638</identifier>
+								<title>Skyrim</title>
+								<type>Xbox 360</type>
+								<workType>game</workType>
+							</manifestation>
+						</briefDisplay>
+					</formattedCollection>
+				</searchResult>
+				<facetResult/>
+				<queryDebugResult/>
+			</result>
+		</searchResponse>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
