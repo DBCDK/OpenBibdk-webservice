@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://oss.dbc.dk/ns/opensearch">
+	<SOAP-ENV:Body>
+		<searchResponse>
+			<result>
+				<hitCount>6</hitCount>
+				<collectionCount>1</collectionCount>
+				<more>true</more>
+				<searchResult>
+					<collection>
+						<resultPosition>1</resultPosition>
+						<numberOfObjects>6</numberOfObjects>
+						<object>
+							<identifier>870970-basis:43683799</identifier>
+							<creationDate>2005-09-02</creationDate>
+							<formatsAvailable>
+								<format>dkabm</format>
+								<format>marcxchange</format>
+							</formatsAvailable>
+						</object>
+						<object>
+							<identifier>870970-basis:25873262</identifier>
+							<creationDate>2005-08-22</creationDate>
+							<formatsAvailable>
+								<format>dkabm</format>
+								<format>marcxchange</format>
+							</formatsAvailable>
+						</object>
+						<object>
+							<identifier>870970-basis:44273160</identifier>
+							<creationDate>2008-01-10</creationDate>
+							<formatsAvailable>
+								<format>dkabm</format>
+								<format>marcxchange</format>
+							</formatsAvailable>
+						</object>
+						<object>
+							<identifier>870970-basis:44082985</identifier>
+							<creationDate>2007-03-20</creationDate>
+							<formatsAvailable>
+								<format>dkabm</format>
+								<format>marcxchange</format>
+							</formatsAvailable>
+						</object>
+						<object>
+							<identifier>870970-basis:44319454</identifier>
+							<creationDate>2008-03-03</creationDate>
+							<formatsAvailable>
+								<format>dkabm</format>
+								<format>marcxchange</format>
+							</formatsAvailable>
+						</object>
+						<object>
+							<identifier>870970-basis:43917129</identifier>
+							<creationDate>2006-07-20</creationDate>
+							<formatsAvailable>
+								<format>dkabm</format>
+								<format>marcxchange</format>
+							</formatsAvailable>
+						</object>
+					</collection>
+					<formattedCollection>
+						<briefDisplay>
+							<manifestation>
+								<accessType>physical</accessType>
+								<creator>Cormac McCarthy (1933-)</creator>
+								<fedoraPid>810010-katalog:005375631</fedoraPid>
+								<identifier>870970-basis:43683799</identifier>
+								<language>Engelsk</language>
+								<title>No country for old men</title>
+								<type>Bog</type>
+								<workType>book</workType>
+							</manifestation>
+							<manifestation>
+								<accessType>physical</accessType>
+								<creator>Cormac McCarthy</creator>
+								<fedoraPid>820030-katalog:836533</fedoraPid>
+								<identifier>870970-basis:25873262</identifier>
+								<title>No country for old men</title>
+								<type>Bog</type>
+								<workType>book</workType>
+							</manifestation>
+							<manifestation>
+								<accessType>physical</accessType>
+								<creator>Cormac McCarthy</creator>
+								<fedoraPid>870970-basis:44273160</fedoraPid>
+								<identifier>870970-basis:44273160</identifier>
+								<language>Engelsk</language>
+								<title>No country for old men</title>
+								<type>Bog</type>
+								<workType>book</workType>
+							</manifestation>
+							<manifestation>
+								<accessType>physical</accessType>
+								<creator>Cormac McCarthy</creator>
+								<fedoraPid>870970-basis:44082985</fedoraPid>
+								<identifier>870970-basis:44082985</identifier>
+								<language>Engelsk</language>
+								<title>No country for old men</title>
+								<type>Bog</type>
+								<workType>book</workType>
+							</manifestation>
+							<manifestation>
+								<accessType>physical</accessType>
+								<creator>Cormac McCarthy</creator>
+								<fedoraPid>870970-basis:44319454</fedoraPid>
+								<identifier>870970-basis:44319454</identifier>
+								<language>Engelsk</language>
+								<title>No country for old men</title>
+								<type>Bog</type>
+								<workType>book</workType>
+							</manifestation>
+							<manifestation>
+								<creator>Cormac McCarthy</creator>
+								<fedoraPid>870970-basis:43917129</fedoraPid>
+								<identifier>870970-basis:43917129</identifier>
+								<language>Engelsk</language>
+								<title>No country for old men</title>
+								<type>Lydbog (cd)</type>
+								<workType>audiobook</workType>
+							</manifestation>
+						</briefDisplay>
+					</formattedCollection>
+				</searchResult>
+				<facetResult/>
+				<queryDebugResult/>
+			</result>
+		</searchResponse>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
