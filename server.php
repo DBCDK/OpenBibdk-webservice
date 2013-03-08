@@ -424,13 +424,13 @@ class openSearch extends webServiceServer {
               }
             }
           }
-          $post_query = 'q=' . urlencode($q) .
+          $post_query = 'q=' . urlencode($q . ' AND unit.isPrimaryObject:true') .
                        '&fq=' . $filter_q .
                        '&wt=phps' .
                        '&start=0' .
                        '&rows=' . '999999' . // $no_of_rows . 
                        '&defType=edismax' .
-                       '&fl=unit.id,sort.complexKey' . $add_fl;
+                       '&fl=unit.isPrimaryObject,unit.id,sort.complexKey' . $add_fl;
           if ($rank_qf) $post_query .= '&qf=' . $rank_qf;
           if ($rank_pf) $post_query .= '&pf=' . $rank_pf;
           if ($rank_tie) $post_query .= '&tie=' . $rank_tie;
@@ -460,7 +460,7 @@ class openSearch extends webServiceServer {
             foreach ($w_list as $w) {
               foreach ($solr_2_arr as $s_2_a) {
                 foreach ($s_2_a['response']['docs'] as $fdoc) {
-                  $p_id = &$fdoc['unit.id'][0];
+                  $p_id = $fdoc['unit.id'][0];
                   if ($p_id == $w) {
                     $hit_fid_array[] = $w;
                     $unit_sort_keys[$w] = $fdoc['sort.complexKey'] . '  ' . $p_id;
@@ -524,7 +524,7 @@ class openSearch extends webServiceServer {
           }
 
         }
-        $sort_key = $fpid_sort_keys[$fpid] . sprintf('%04d', 9999 - count($objects));
+        $sort_key = $fpid_sort_keys[$fpid] . ' ' . sprintf('%04d', count($objects));
         $sorted_work[$sort_key] = $unit_id;
         $objects[$sort_key]->_value =
           $this->parse_fedora_object($fedora_result,
