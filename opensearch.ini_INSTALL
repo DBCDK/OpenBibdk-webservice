@@ -61,19 +61,18 @@ missing_record = <?xml version='1.0' encoding='UTF-8'?><ting:container xmlns:tin
 default_repository = @REPOSITORY_NAME@
 
 ; url to solr and fedorainterface
-; set url's for fedora_get_raw, fedora_get_rels_ext and fedora_get_object_profile
+; set url's for fedora_get_raw, fedora_get_rels_hierarchy and fedora_get_object_profile
 ; - solr: url to solr-server
-; - fedora_get_raw: url to get raw record from fedora
-; - fedora_get_rels_ext: url to get rels_ext_record from fedora
+; - fedora_get_raw: url to get raw record from fedora - commonData stream
+; - fedora_get_rels_hierarchy: url to get work-/unit-structure relations from fedora - RELS-SYS stream
+; - fedora_get_rels_addi: url to get addi relation datastream - RELS-EXT stream
 ; - fedora_get_object_profile: url to get object state/profile from fedora - if not set, deleted records will be returned
 ; - search_profile_version: 2 (using submitter and original_format) or 3 (using rec.collectionIdentifier)
 
 repository[@REPOSITORY_NAME@][solr] = @SOLR@
 repository[@REPOSITORY_NAME@][fedora_get_raw] = @FEDORA_GET_RAW@
-repository[@REPOSITORY_NAME@][fedora_get_rels_ext] = @FEDORA_GET_RELS_EXT@
+repository[@REPOSITORY_NAME@][fedora_get_rels_hierarchy] = @FEDORA_GET_RELS_HIERARCHY@
 repository[@REPOSITORY_NAME@][fedora_get_rels_addi] = @FEDORA_GET_RELS_ADDI@
-repository[@REPOSITORY_NAME@][fedora_get_object_profile] = @FEDORA_GET_OBJECT_PROFILE@
-repository[@REPOSITORY_NAME@][fedora_get_datastreams] = @FEDORA_GET_DATASTREAMS@
 repository[@REPOSITORY_NAME@][fedora_get_object_profile] = @FEDORA_GET_OBJECT_PROFILE@
 repository[@REPOSITORY_NAME@][search_profile_version] = 3
 
@@ -125,7 +124,7 @@ max_identical_relation_names = 20
 ; relations which can be returned
 ; relation[prefix:relationname] = [12]
 ; - prefix has to be declared with namespace in xmlns (above)
-; - relationename as found in the RELS_EXT from fedora
+; - relationename as found in the RELS_ADDI from fedora
 ; - relations of type 1 points to internal objects
 ; - relations of type 2 points to external objects
 relation[dbcaddi:hasImage] = 1
