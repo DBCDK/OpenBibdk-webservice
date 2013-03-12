@@ -67,14 +67,12 @@ default_repository = @REPOSITORY_NAME@
 ; - fedora_get_rels_hierarchy: url to get work-/unit-structure relations from fedora - RELS-SYS stream
 ; - fedora_get_rels_addi: url to get addi relation datastream - RELS-EXT stream
 ; - fedora_get_object_profile: url to get object state/profile from fedora - if not set, deleted records will be returned
-; - search_profile_version: 2 (using submitter and original_format) or 3 (using rec.collectionIdentifier)
 
 repository[@REPOSITORY_NAME@][solr] = @SOLR@
 repository[@REPOSITORY_NAME@][fedora_get_raw] = @FEDORA_GET_RAW@
 repository[@REPOSITORY_NAME@][fedora_get_rels_hierarchy] = @FEDORA_GET_RELS_HIERARCHY@
 repository[@REPOSITORY_NAME@][fedora_get_rels_addi] = @FEDORA_GET_RELS_ADDI@
 repository[@REPOSITORY_NAME@][fedora_get_object_profile] = @FEDORA_GET_OBJECT_PROFILE@
-repository[@REPOSITORY_NAME@][search_profile_version] = 3
 
 ; memcache
 cache_host = localhost
