@@ -363,7 +363,6 @@ class openSearch extends webServiceServer {
             $uid_array = array($uid);
           $work_struct[$w_no] = $uid_array;
         }
-        if (DEBUG_ON) print_r($uid_array);
 
         foreach ($uid_array as $id) {
           $used_search_fids[$id] = TRUE;
@@ -1027,7 +1026,7 @@ class openSearch extends webServiceServer {
   private function get_fedora($uri, $fpid, &$rec, $mandatory=TRUE) {
     $record_uri =  sprintf($uri, $fpid);
     verbose::log(STAT, 'get_fedora: ' . $record_uri);
-    if (DEBUG_ON) echo 'Fetch record: /' . $record_uri . "/\n";
+    if (DEBUG_ON) echo 'Fetch record: ' . $record_uri . "\n";
     if ($this->cache && $rec = $this->cache->get($record_uri)) {
       $this->number_of_fedora_cached++;
     }
@@ -1350,7 +1349,7 @@ class openSearch extends webServiceServer {
     if ($relations) $ret->relations->_value = $relations;
     $ret->formatsAvailable->_value = $this->scan_for_formats($dom);
     if ($debug_info) $ret->queryResultExplanation->_value = $debug_info;
-    if (DEBUG_ON) var_dump($ret);
+    //if (DEBUG_ON) var_dump($ret);
 
     //print_r($ret);
     //exit;
