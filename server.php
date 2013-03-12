@@ -35,12 +35,14 @@ class openSearch extends webServiceServer {
   protected $curl;
   protected $cache;
   protected $search_profile;
-  protected $search_profile_version;
+  protected $search_profile_version = 3;
   protected $repository; // array containing solr and fedora uri's
   protected $tracking_id; 
   protected $number_of_fedora_calls = 0;
   protected $number_of_fedora_cached = 0;
   protected $separate_field_query_style = TRUE; // seach as field:(a OR b) ie FALSE or (field:a OR field:b) ie TRUE
+  protected $valid_relation = array(); 
+  protected $valid_source = array(); 
 
 
   public function __construct() {
@@ -100,7 +102,6 @@ class openSearch extends webServiceServer {
       $param->agency->_value = '100200';
       $param->profile->_value = 'test';
     }
-    $this->search_profile_version = $this->repository['search_profile_version'];
     if (empty($param->agency->_value) && empty($param->profile->_value)) {
       $param->agency->_value = $this->config->get_value('agency_fallback', 'setup');
       $param->profile->_value = $this->config->get_value('profile_fallback', 'setup');
@@ -111,12 +112,12 @@ class openSearch extends webServiceServer {
     elseif (empty($param->profile->_value)) {
       $unsupported = 'Error: No profile in request';
     }
-    elseif (!($this->search_profile = $this->fetch_profile_from_agency($param->agency->_value, $param->profile->_value, $this->search_profile_version))) {
+    elseif (!($this->search_profile = $this->fetch_profile_from_agency($param->agency->_value, $param->profile->_value))) {
       $unsupported = 'Error: Cannot fetch profile: ' . $param->profile->_value .
                      ' for ' . $param->agency->_value;
     }
     if ($unsupported) return $ret_error;
-    $filter_agency = $this->set_solr_filter($this->search_profile, $this->search_profile_version);
+    $filter_agency = $this->set_solr_filter($this->search_profile);
 
     $use_work_collection = ($param->collectionType->_value <> 'manifestation');
     if (($rr = $param->userDefinedRanking) || ($rr = $param->userDefinedBoost->_value->userDefinedRanking)) {
@@ -669,17 +670,16 @@ class openSearch extends webServiceServer {
       $param->agency->_value = $this->config->get_value('agency_fallback', 'setup');
       $param->profile->_value = $this->config->get_value('profile_fallback', 'setup');
     }
-    $this->search_profile_version = $this->repository['search_profile_version'];
     if ($agency = $param->agency->_value) {
       if ($param->profile->_value) {
-        if (!($this->search_profile = $this->fetch_profile_from_agency($agency, $param->profile->_value, $this->search_profile_version))) {
+        if (!($this->search_profile = $this->fetch_profile_from_agency($agency, $param->profile->_value))) {
           $error = 'Error: Cannot fetch profile: ' . $param->profile->_value . ' for ' . $agency;
           return $ret_error;
         }
       }
       else
         $agencies = $this->config->get_value('agency', 'agency');
-      $agencies[$agency] = $this->set_solr_filter($this->search_profile, $this->search_profile_version);
+      $agencies[$agency] = $this->set_solr_filter($this->search_profile);
       if (isset($agencies[$agency]))
         $filter_agency = $agencies[$agency];
       else {
@@ -1056,57 +1056,61 @@ class openSearch extends webServiceServer {
   /** \brief Build Solr filter_query parm
    *
    */
-  private function set_solr_filter($profile, $profile_version) {
+  private function set_solr_filter($profile) {
     $ret = '';
     foreach ($profile as $p) {
-      if ($profile_version == 3) {
-        if ($this->xs_boolean($p['sourceSearchable']))
-          $ret .= ($ret ? ' OR ' : '') .
-                  'rec.collectionIdentifier:' . $p['sourceIdentifier'];
+      if ($this->xs_boolean($p['sourceSearchable'])) {
+        $ret .= ($ret ? ' OR ' : '') . 'rec.collectionIdentifier:' . $p['sourceIdentifier'];
       }
-      else
-        $ret .= ($ret ? ' OR ' : '') .
-                '(submitter:' . $p['sourceOwner'] .  
-                ' AND original_format:' . $p['sourceFormat'] . ')';
     }
     return $ret;
   }
 
-  /** \brief Check a relation against the search_profile
+  /** \brief Check an external relation against the search_profile
    *
    */
-  private function check_valid_relation($from_id, $to_id, $relation, &$profile) {
-    static $rels, $source;
-    if (!isset($rels)) {
-      $rel_from = $rel_to = array();
+  private function check_valid_external_relation($collection, $relation, $profile) {
+    $this->set_valid_relations_and_sources($profile);
+    return (isset($this->valid_relation[$collection][$relation]));
+  }
+
+  /** \brief Check an internal relation against the search_profile
+   *
+   */
+  private function check_valid_internal_relation($unit_id, $relation, $profile) {
+    $this->set_valid_relations_and_sources($profile);
+    $this->get_fedora_rels_hierarchy($unit_id, $rels_hierarchy);
+    $pid = $this->fetch_primary_bib_object($rels_hierarchy);
+    $to_kilde = $this->kilde($pid);
+    if (DEBUG_ON) {
+      echo "to: $to_kilde relation: $relation \n";
+    }
+
+    return (isset($this->valid_relation[$to_kilde][$relation]));
+  }
+
+  /** \brief sets valid relations from the search profile
+   *
+   */
+  private function set_valid_relations_and_sources($profile) {
+    if (empty($this->valid_relation)) {
       foreach ($profile as $src) {
-        $source[$src['sourceIdentifier']] = TRUE;
+        $this->valid_source[$src['sourceIdentifier']] = TRUE;
         if ($src['relation']) {
           foreach ($src['relation'] as $rel) {
             if ($rel['rdfLabel'])
-              $rels[$src['sourceIdentifier']][$rel['rdfLabel']] = TRUE;
+              $this->valid_relation[$src['sourceIdentifier']][$rel['rdfLabel']] = TRUE;
             if ($rel['rdfInverse'])
-              $rels[$src['sourceIdentifier']][$rel['rdfInverse']] = TRUE;
+              $this->valid_relation[$src['sourceIdentifier']][$rel['rdfInverse']] = TRUE;
           }
         }
       }
 
       if (DEBUG_ON) {
         print_r($profile);
-        echo "rels:\n"; print_r($rels); echo "source:\n"; print_r($source);
+        echo "rels:\n"; print_r($this->valid_relation); echo "source:\n"; print_r($this->valid_source);
       }
     }
-    if (substr($to_id, 0, 5) == 'unit:') {
-      $this->get_fedora_rels_hierarchy($to_id, $rels_sys);
-      $to_id = $this->fetch_primary_bib_object($rels_sys);
-    }
-    $from = $this->kilde($from_id);
-    $to = $this->kilde($to_id);
-    if (DEBUG_ON) {
-      echo "from: $from to: $to relation: $relation \n";
-    }
-
-    return (isset($rels[$to][$relation]));
   }
 
   private function kilde($id) {
@@ -1117,7 +1121,7 @@ class openSearch extends webServiceServer {
   /** \brief Fetch a profile $profile_name for agency $agency
    *
    */
-  private function fetch_profile_from_agency($agency, $profile_name, $profile_version) {
+  private function fetch_profile_from_agency($agency, $profile_name) {
     require_once 'OLS_class_lib/search_profile_class.php';
     if (!($host = $this->config->get_value('profile_cache_host', 'setup')))
       $host = $this->config->get_value('cache_host', 'setup');
@@ -1126,8 +1130,7 @@ class openSearch extends webServiceServer {
     if (!($expire = $this->config->get_value('profile_cache_expire', 'setup')))
       $expire = $this->config->get_value('cache_expire', 'setup');
     $profiles = new search_profiles($this->config->get_value('open_agency', 'setup'), $host, $port, $expire);
-    $profile_version = ($profile_version ? intval($profile_version) : 2);
-    $profile = $profiles->get_profile($agency, $profile_name, $profile_version);
+    $profile = $profiles->get_profile($agency, $profile_name, $this->search_profile_version);
     if (is_array($profile)) {
       return $profile;
     }
@@ -1413,18 +1416,26 @@ class openSearch extends webServiceServer {
       foreach ($stream_dom->getElementsByTagName('link') as $link) {
         $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
         if (empty($dup_check[$url])) {
-          if (!$relation->relationType->_value = $link->getelementsByTagName('relationType')->item(0)->nodeValue) {
-            $relation->relationType->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
-          };
-          if ($rels_type == 'uri' || $rels_type == 'full') {
-            $relation->relationUri->_value = $url;
-            $relation->linkObject->_value->accessType->_value = $link->getelementsByTagName('accessType')->item(0)->nodeValue;
-            $relation->linkObject->_value->access->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
-            $relation->linkObject->_value->linkTo->_value = $link->getelementsByTagName('LinkTo')->item(0)->nodeValue;
+          $this_relation = $link->getelementsByTagName('relationType')->item(0)->nodeValue;
+          $valid_relation = TRUE;
+          foreach ($link->getelementsByTagName('collectionIdentifier') as $collection) {
+            $valid_relation = $valid_relation || 
+                              $this->check_valid_external_relation($collection->nodeValue, $this_relation, $this->search_profile);
           }
-          $dup_check[$url] = TRUE;
-          $relations->relation[]->_value = $relation;
-          unset($relation);
+          if ($valid_relation) {
+            if (!$relation->relationType->_value = $this_relation) {   // ????? WHY - is relationType sometimes empty?
+              $relation->relationType->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
+            };
+            if ($rels_type == 'uri' || $rels_type == 'full') {
+              $relation->relationUri->_value = $url;
+              $relation->linkObject->_value->accessType->_value = $link->getelementsByTagName('accessType')->item(0)->nodeValue;
+              $relation->linkObject->_value->access->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
+              $relation->linkObject->_value->linkTo->_value = $link->getelementsByTagName('LinkTo')->item(0)->nodeValue;
+            }
+            $dup_check[$url] = TRUE;
+            $relations->relation[]->_value = $relation;
+            unset($relation);
+          }
         }
       }
     }
@@ -1450,17 +1461,17 @@ class openSearch extends webServiceServer {
           else
             $this_relation = $tag->localName;
           $relation_type = $allowed_relation[$this_relation];
-          if ($relation_type
+          if ($relation_type == REL_TO_INTERNAL_OBJ
            && $relation_count[$this_relation]++ < MAX_IDENTICAL_RELATIONS
-           && $this->check_valid_relation($rec_id, $tag->nodeValue, $this_relation, $this->search_profile)) {
-            if ($relation_type <> REL_TO_INTERNAL_OBJ || $this->is_searchable($tag->nodeValue, $filter)) {
+           && $this->check_valid_internal_relation($tag->nodeValue, $this_relation, $this->search_profile)) {
+            if ($this->is_searchable($tag->nodeValue, $filter)) {
               $relation->relationType->_value = $this_relation;
               if ($rels_type == 'uri' || $rels_type == 'full') {
                 $this->get_fedora_rels_hierarchy($tag->nodeValue, $rels_sys);
                 $rel_uri = $this->fetch_primary_bib_object($rels_sys);
                 $relation->relationUri->_value = $rel_uri;
               }
-              if ($rels_type == 'full' && $relation_type == REL_TO_INTERNAL_OBJ) {
+              if ($rels_type == 'full') {
                 $this->get_fedora_raw($rel_uri, $related_obj);
                 if (@ !$rels_dom->loadXML($related_obj)) {
                   verbose::log(FATAL, 'Cannot load ' . $rel_uri . ' object for ' . $rec_id . ' into DomXml');
