@@ -40,6 +40,7 @@ class openSearch extends webServiceServer {
   protected $tracking_id; 
   protected $number_of_fedora_calls = 0;
   protected $number_of_fedora_cached = 0;
+  protected $separate_field_query_style = TRUE; // seach as field:(a OR b) ie FALSE or (field:a OR field:b) ie TRUE
 
 
   public function __construct() {
@@ -389,6 +390,7 @@ class openSearch extends webServiceServer {
     if ($use_work_collection && $step_value) {
       $no_of_rows = 1;
       $add_query[$block_idx] = '';
+      $which_rec_id = 'unit.id';
       foreach ($work_ids as $w_no => $w) {
         if (count($w) > 1 || $format['found_solr_format']) {
           if ($add_query[$block_idx] && ($no_bool + count($w)) > MAX_QUERY_ELEMENTS) {
@@ -396,22 +398,33 @@ class openSearch extends webServiceServer {
             $no_bool = 0;
           }
           foreach ($w as $id) {
-            $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $id;
+            $id = str_replace(':', '\:', $id);
+            if ($this->separate_field_query_style) {
+              $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $which_rec_id . ':' . $id;
+            }
+            else {
+              $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $id;
+            }
             $no_bool++;
             $no_of_rows++;
           }
         }
       }
       if (!empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {    // use post here because query can be very long
-        $which_rec_id = 'unit.id';
         foreach ($add_query as $add_idx => $add_q) {
-          if ($this->xs_boolean($param->allObjects->_value)) {
-            $combine_query = '';
+          if ($this->separate_field_query_style) {
+              $add_q =  '(' . $add_q . ')';
           }
           else {
-            $combine_query = '(' . $param->query->_value . ') ' . AND_OP . ' ';
+              $add_q =  $which_rec_id . ':(' . $add_q . ')';
           }
-          $chk_query = $this->cql2solr->cql_2_edismax($combine_query . $which_rec_id . '=(' . $add_q . ')');
+          if ($this->xs_boolean($param->allObjects->_value)) {
+            $chk_query['edismax'] .=  $add_q;
+          }
+          else {
+            $chk_query = $this->cql2solr->cql_2_edismax($param->query->_value);
+            $chk_query['edismax'] .=  ' ' . AND_OP . ' ' . $add_q;
+          }
           if ($chk_query['error']) {
             $error = $chk_query['error'];
             return $ret_error;
@@ -469,7 +482,13 @@ class openSearch extends webServiceServer {
                 }
               }
             }
-            $work_ids[$w_no] = $hit_fid_array;
+            if (empty($hit_fid_array)) {
+              verbose::log(ERROR, 'Re-search: Cannot find any of ' . implode(',', $w_list) . ' in unit.id');
+              $work_ids[$w_no] = array($w_list[0]);
+            }
+            else {
+              $work_ids[$w_no] = $hit_fid_array;
+            }
           }
         }
       }
