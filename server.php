@@ -26,10 +26,6 @@ require_once 'OLS_class_lib/memcache_class.php';
 require_once 'OLS_class_lib/solr_query_class.php';
 
 //-----------------------------------------------------------------------------
-define(REL_TO_INTERNAL_OBJ, 1);       // relation points to internal object
-define(REL_TO_EXTERNAL_OBJ, 2);     // relation points to external object
-
-//-----------------------------------------------------------------------------
 class openSearch extends webServiceServer {
   protected $cql2solr;
   protected $curl;
@@ -1071,7 +1067,11 @@ class openSearch extends webServiceServer {
    */
   private function check_valid_external_relation($collection, $relation, $profile) {
     $this->set_valid_relations_and_sources($profile);
-    return (isset($this->valid_relation[$collection][$relation]));
+    $valid = isset($this->valid_relation[$collection][$relation]);
+    if (DEBUG_ON) {
+      echo "from: $collection relation: $relation - " . ($valid ? '' : 'no ') . "go\n";
+    }
+    return $valid;
   }
 
   /** \brief Check an internal relation against the search_profile
@@ -1082,11 +1082,12 @@ class openSearch extends webServiceServer {
     $this->get_fedora_rels_hierarchy($unit_id, $rels_hierarchy);
     $pid = $this->fetch_primary_bib_object($rels_hierarchy);
     $to_kilde = $this->kilde($pid);
+    $valid = isset($this->valid_relation[$to_kilde][$relation]);
     if (DEBUG_ON) {
-      echo "to: $to_kilde relation: $relation \n";
+      echo "to: $to_kilde relation: $relation - " . ($valid ? '' : 'no ') . "go\n";
     }
 
-    return (isset($this->valid_relation[$to_kilde][$relation]));
+    return $valid;
   }
 
   /** \brief sets valid relations from the search profile
@@ -1417,7 +1418,7 @@ class openSearch extends webServiceServer {
         $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
         if (empty($dup_check[$url])) {
           $this_relation = $link->getelementsByTagName('relationType')->item(0)->nodeValue;
-          $valid_relation = TRUE;
+          $valid_relation = FALSE;
           foreach ($link->getelementsByTagName('collectionIdentifier') as $collection) {
             $valid_relation = $valid_relation || 
                               $this->check_valid_external_relation($collection->nodeValue, $this_relation, $this->search_profile);
@@ -1445,24 +1446,20 @@ class openSearch extends webServiceServer {
    *
    */
   private function get_relations_from_addi_stream(&$relations, $fedora_addi_obj, $rels_type, $filter, $format) {
-    static $rels_dom, $allowed_relation;
-    if (!isset($allowed_relation)) {
-      $allowed_relation = $this->config->get_value('relation', 'setup');
-    }
+    static $rels_dom;
     if (empty($rels_dom)) {
       $rels_dom = new DomDocument();
     }
     @ $rels_dom->loadXML($fedora_addi_obj);
     if ($rels_dom->getElementsByTagName('Description')->item(0)) {
+      $relation_count = array();
       foreach ($rels_dom->getElementsByTagName('Description')->item(0)->childNodes as $tag) {
         if ($tag->nodeType == XML_ELEMENT_NODE) {
           if ($rel_prefix = array_search($tag->getAttribute('xmlns'), $this->xmlns))
             $this_relation = $rel_prefix . ':' . $tag->localName;
           else
             $this_relation = $tag->localName;
-          $relation_type = $allowed_relation[$this_relation];
-          if ($relation_type == REL_TO_INTERNAL_OBJ
-           && $relation_count[$this_relation]++ < MAX_IDENTICAL_RELATIONS
+          if ($relation_count[$this_relation]++ < MAX_IDENTICAL_RELATIONS
            && $this->check_valid_internal_relation($tag->nodeValue, $this_relation, $this->search_profile)) {
             if ($this->is_searchable($tag->nodeValue, $filter)) {
               $relation->relationType->_value = $this_relation;
