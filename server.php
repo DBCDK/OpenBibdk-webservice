@@ -1431,7 +1431,7 @@ class openSearch extends webServiceServer {
               $relation->relationUri->_value = $url;
               $relation->linkObject->_value->accessType->_value = $link->getelementsByTagName('accessType')->item(0)->nodeValue;
               $relation->linkObject->_value->access->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
-              $relation->linkObject->_value->linkTo->_value = $link->getelementsByTagName('LinkTo')->item(0)->nodeValue;
+              $relation->linkObject->_value->linkTo->_value = $link->getelementsByTagName('linkTo')->item(0)->nodeValue;
             }
             $dup_check[$url] = TRUE;
             $relations->relation[]->_value = $relation;
