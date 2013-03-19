@@ -531,7 +531,7 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">The source of objects. Use this if you want to restrict your search to a specific source in the repository.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
-	<xs:element name="start" type="xs:int">
+	<xs:element name="start" type="xs:positiveInteger">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">The number of the first collection you want the service to return.</xs:documentation>
 		</xs:annotation>
@@ -644,6 +644,7 @@ You should have received a copy of the GNU Affero General Public License along w
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="cqldan"/>
 			<xs:enumeration value="cqleng"/>
+			<xs:enumeration value="nearMatch"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="linkToType">
