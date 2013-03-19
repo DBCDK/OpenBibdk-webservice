@@ -717,7 +717,7 @@ class openSearch extends webServiceServer {
         if ($this->xs_boolean($param->includeHoldingsCount->_value)) {
           $this->get_fedora_rels_hierarchy($unit_id, $unit_rels_hierarchy);
           list($dummy, $dummy) = $this->parse_unit_for_object_ids($unit_rels_hierarchy);
-          $this->cql2solr = new cql2solr('opensearch_cql.xml', $this->config);
+          $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config, $param->queryLanguage->_value);
           $no_of_holdings = $this->get_holdings($fpid->_value);
         }
       }
