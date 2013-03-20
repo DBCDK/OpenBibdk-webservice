@@ -34,6 +34,7 @@ class openSearch extends webServiceServer {
   protected $search_profile_version = 3;
   protected $repository; // array containing solr and fedora uri's
   protected $tracking_id; 
+  protected $query_language = 'cqleng'; 
   protected $number_of_fedora_calls = 0;
   protected $number_of_fedora_cached = 0;
   protected $separate_field_query_style = TRUE; // seach as field:(a OR b) ie FALSE or (field:a OR field:b) ie TRUE
@@ -182,16 +183,10 @@ class openSearch extends webServiceServer {
     $key_work_struct = md5($param->query->_value . $repository_name . $filter_agency .
                               $use_work_collection .  $sort . $rank . $boost_str . $this->version);
 
-    if ($param->queryLanguage->_value == 'cqldan') {
-      define('AND_OP', 'og');
-      define('OR_OP', 'eller');
+    if ($param->queryLanguage->_value) {
+      $this->query_language = $param->queryLanguage->_value;
     }
-    else {
-      define('AND_OP', 'AND');
-      define('OR_OP', 'OR');
-      $param->queryLanguage->_value = 'cqleng';
-    }
-    $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config, $param->queryLanguage->_value);
+    $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config, $this->query_language);
     $solr_query = $this->cql2solr->cql_2_edismax($param->query->_value);
     if ($solr_query['error']) {
       $error = $solr_query['error'];
@@ -203,6 +198,9 @@ class openSearch extends webServiceServer {
     }
     if ($sort) {
       $sort_q = '&sort=' . urlencode($sort_type[$sort]);
+    }
+    if ($this->query_language == 'bestMatch') {
+      $sort_q .= '&mm=1';
     }
     if ($rank_type[$rank]) {
       $rank_qf = $this->cql2solr->make_boost($rank_type[$rank]['word_boost']);
@@ -433,8 +431,8 @@ class openSearch extends webServiceServer {
               }
             }
           }
-          $post_query = 'q=' . urlencode($q . ' AND unit.isPrimaryObject:true') .
-                       '&fq=' . $filter_q .
+          $post_query = 'q=' . urlencode($q) .
+                       '&fq=' . $filter_q . '+AND+unit.isPrimaryObject:true' .
                        '&wt=phps' .
                        '&start=0' .
                        '&rows=' . '999999' . // $no_of_rows . 
@@ -595,7 +593,7 @@ class openSearch extends webServiceServer {
 // try to get a better hitCount by looking for primaryObjects only 
     if (($start > 1) || $more) {
 // ignore errors here
-      $err = $this->get_solr_array($solr_query['edismax'] . ' AND unit.isPrimaryObject:true', 0, 0, '', '', '', $filter_q, '', $debug_query, $solr_arr);
+      $err = $this->get_solr_array($solr_query['edismax'], 0, 0, '', '', '', $filter_q . '+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr);
       if ($solr_arr['response']['numFound'] > 0) {
         verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $solr_arr['response']['numFound']);
         $numFound = $solr_arr['response']['numFound'];
@@ -717,7 +715,7 @@ class openSearch extends webServiceServer {
         if ($this->xs_boolean($param->includeHoldingsCount->_value)) {
           $this->get_fedora_rels_hierarchy($unit_id, $unit_rels_hierarchy);
           list($dummy, $dummy) = $this->parse_unit_for_object_ids($unit_rels_hierarchy);
-          $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config, $param->queryLanguage->_value);
+          $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config);
           $no_of_holdings = $this->get_holdings($fpid->_value);
         }
       }

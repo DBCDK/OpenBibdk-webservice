@@ -644,7 +644,7 @@ You should have received a copy of the GNU Affero General Public License along w
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="cqldan"/>
 			<xs:enumeration value="cqleng"/>
-			<xs:enumeration value="nearMatch"/>
+			<xs:enumeration value="bestMatch"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="linkToType">
