@@ -88,7 +88,7 @@ profile_cache_expire = 60
 holdings_db = @HOLDINGS_DB@
 
 ; search profile service end point
-open_agency = @OPEN_AGENCY@
+agency_search_profile = @AGENCY_SEARCH_PROFILE@
 
 ; open format
 ; address to openFormat service
