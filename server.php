@@ -1128,7 +1128,7 @@ class openSearch extends webServiceServer {
       $port = $this->config->get_value('cache_port', 'setup');
     if (!($expire = $this->config->get_value('profile_cache_expire', 'setup')))
       $expire = $this->config->get_value('cache_expire', 'setup');
-    $profiles = new search_profiles($this->config->get_value('open_agency', 'setup'), $host, $port, $expire);
+    $profiles = new search_profiles($this->config->get_value('agency_search_profile', 'setup'), $host, $port, $expire);
     $profile = $profiles->get_profile($agency, $profile_name, $this->search_profile_version);
     if (is_array($profile)) {
       return $profile;
