@@ -144,30 +144,30 @@ logfile = /tmp/opensearch.log
 ;   boost_value for rank_register
 ;
 
-rank[rank_title][word_boost][dc.title] = 4
-rank[rank_title][phrase_boost][dc.title] = 8
-rank[rank_title][word_boost][cql.anyIndexes] = 1
-rank[rank_title][phrase_boost][cql.anyIndexes] = 1
+rank[rank_title][word_boost][dkcclterm.ti] = 4
+rank[rank_title][phrase_boost][dkcclphrase.lti] = 8
+rank[rank_title][word_boost][term.default] = 1
+rank[rank_title][phrase_boost][term.default] = 1
 rank[rank_title][tie] = 0.1
 
-rank[rank_creator][word_boost][dc.creator] = 4
-rank[rank_creator][phrase_boost][dc.creator] = 8
-rank[rank_creator][word_boost][cql.anyIndexes] = 1
-rank[rank_creator][phrase_boost][cql.anyIndexes] = 1
+rank[rank_creator][word_boost][dkcclterm.fo] = 4
+rank[rank_creator][phrase_boost][dkcclphrase.lfo] = 8
+rank[rank_creator][word_boost][term.default] = 1
+rank[rank_creator][phrase_boost][term.default] = 1
 rank[rank_creator][tie] = 0.1
 
-rank[rank_general][word_boost][dc.title] = 3
-rank[rank_general][phrase_boost][dc.title] = 6
-rank[rank_general][word_boost][dc.creator] = 4
-rank[rank_general][phrase_boost][dc.creator] = 8
-rank[rank_general][word_boost][dc.subject] = 2
-rank[rank_general][phrase_boost][dc.subject] = 3
-rank[rank_general][word_boost][cql.anyIndexes] = 1
-rank[rank_general][phrase_boost][cql.anyIndexes] = 1
+rank[rank_general][word_boost][dkcclterm.ti] = 3
+rank[rank_general][phrase_boost][dkcclphrase.lti] = 6
+rank[rank_general][word_boost][dkcclterm.fo] = 4
+rank[rank_general][phrase_boost][dkcclphrase.lfo] = 8
+rank[rank_general][word_boost][dkcclterm.em] = 2
+rank[rank_general][phrase_boost][dkcclphrase.lem] = 3
+rank[rank_general][word_boost][term.default] = 1
+rank[rank_general][phrase_boost][term.default] = 1
 rank[rank_general][tie] = 0.1
 
-rank[rank_none][word_boost][cql.anyIndexes] = 0.1
-rank[rank_none][phrase_boost][cql.anyIndexes] = 0.1
+rank[rank_none][word_boost][term.default] = 0.1
+rank[rank_none][phrase_boost][term.default] = 0.1
 rank[rank_none][tie] = 1
 
 sort[title_ascending] = sort.title asc
