@@ -200,6 +200,7 @@ class openSearch extends webServiceServer {
       $sort_q .= '&mm=1';
       foreach ($solr_query['best_match'] as $key => $val) {
         $sort_q .= '&' . $key . '=' . $val;
+        $best_match_debug->$key->_value = urldecode($val);
       }
     }
     elseif ($sort) {
@@ -250,6 +251,9 @@ class openSearch extends webServiceServer {
     if ($error) return $ret_error;
 
     if ($debug_query) {
+      if ($best_match_debug) {
+        $debug_result->bestMatch->_value = $best_match_debug;
+      }
       $debug_result->rawQueryString->_value = $solr_arr['debug']['rawquerystring'];
       $debug_result->queryString->_value = $solr_arr['debug']['querystring'];
       $debug_result->parsedQuery->_value = $solr_arr['debug']['parsedquery'];
