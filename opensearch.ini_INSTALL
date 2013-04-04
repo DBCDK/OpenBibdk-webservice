@@ -42,6 +42,7 @@ xmlns[dcmitype] = http://purl.org/dc/dcmitype/
 xmlns[dcterms] = http://purl.org/dc/terms/
 xmlns[ac] = http://biblstandard.dk/ac/namespace/
 xmlns[dkdcplus] = http://biblstandard.dk/abm/namespace/dkdcplus/
+xmlns[kml] = http://www.opengis.net/kml/2.2
 xmlns[marcx] = info:lc/xmlns/marcxchange-v1
 xmlns[docbook] = http://docbook.org/ns/docbook
 xmlns[oso] = http://oss.dbc.dk/ns/opensearchobjects
