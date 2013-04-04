@@ -196,11 +196,14 @@ class openSearch extends webServiceServer {
       $error = 'Error: No query found in request';
       return $ret_error;
     }
-    if ($sort) {
-      $sort_q = '&sort=' . urlencode($sort_type[$sort]);
-    }
     if ($this->query_language == 'bestMatch') {
       $sort_q .= '&mm=1';
+      foreach ($solr_query['best_match'] as $key => $val) {
+        $sort_q .= '&' . $key . '=' . $val;
+      }
+    }
+    elseif ($sort) {
+      $sort_q = '&sort=' . urlencode($sort_type[$sort]);
     }
     if ($rank_type[$rank]) {
       $rank_qf = $this->cql2solr->make_boost($rank_type[$rank]['word_boost']);
