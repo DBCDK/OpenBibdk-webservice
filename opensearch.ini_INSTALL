@@ -204,6 +204,11 @@ dump_timer = opensearch(%s)
 ; aaa_ip_rights below if ip-match otherwise it is set from
 ; the FORS-server if aaa_credentials contains a valid fors-login
 ;
+; uri for a fors rights webservice - aaa_fors_rights have precedence over aaa_credentials
+;aaa_fors_rights = http://forsrights.some.server/?action=forsRights&outputType=php&userIdAut=%s&groupIdAut=%s&passwordAut=%s&ipAddress=%s
+;
+; or
+;
 ; oci credentials for FORS server
 ;aaa_credentials = some_user/some_pwd@some.server.dbc.dk
 ; memcache server - use localhost in one-webserver environment
