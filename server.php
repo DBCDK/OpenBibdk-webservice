@@ -199,8 +199,8 @@ class openSearch extends webServiceServer {
     if ($this->query_language == 'bestMatch') {
       $sort_q .= '&mm=1';
       foreach ($solr_query['best_match'] as $key => $val) {
-        $sort_q .= '&' . $key . '=' . $val;
-        $best_match_debug->$key->_value = urldecode($val);
+        $sort_q .= '&' . $key . '=' . urlencode($val);
+        $best_match_debug->$key->_value = $val;
       }
     }
     elseif ($sort) {
