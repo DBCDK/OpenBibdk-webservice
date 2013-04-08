@@ -81,15 +81,19 @@ cache_port = 11211
 cache_expire = 600
 
 ; memcache search profile - defaults to cache_host, cache_port, cache_expire if not defined
-profile_cache_host = localhost
-profile_cache_port = 11211
-profile_cache_expire = 60
+agency_cache_host = localhost
+agency_cache_port = 11211
+agency_cache_expire = 60
+
+; search profile service end point
+; agency_search_profile =  http://some.openagency/?action=openSearchProfile&agencyId=%s&profileVersion=%s
+agency_search_profile = @AGENCY_SEARCH_PROFILE@
+; 
+; agency_types = http://some.openagency/?action=findLibrary&libraryType=Forskningsbibliotek
+agency_types = @AGENCY_TYPES@
 
 ; holding db - return number of items in stock and number of items available for lending
 holdings_db = @HOLDINGS_DB@
-
-; search profile service end point
-agency_search_profile = @AGENCY_SEARCH_PROFILE@
 
 ; open format
 ; address to openFormat service
