@@ -1086,13 +1086,33 @@ class openSearch extends webServiceServer {
     $this->set_valid_relations_and_sources($profile);
     $this->get_fedora_rels_hierarchy($unit_id, $rels_hierarchy);
     $pid = $this->fetch_primary_bib_object($rels_hierarchy);
-    $to_kilde = $this->kilde($pid);
-    $valid = isset($this->valid_relation[$to_kilde][$relation]);
+    $to_record_source = $this->group_record_source_by_relation($pid, $relation);
+    $valid = isset($this->valid_relation[$to_record_source][$relation]);
     if (DEBUG_ON) {
-      echo "to: $to_kilde relation: $relation - " . ($valid ? '' : 'no ') . "go\n";
+      echo "to: $to_record_source relation: $relation - " . ($valid ? '' : 'no ') . "go\n";
     }
 
     return $valid;
+  }
+
+  /** \brief group agency-catalog by group_source_tab
+   *
+   */
+  private function group_record_source_by_relation($pid, $relation) {
+    $group_source_tab[] = array('relation' => 'dbcbib:isPartOfManifestation',
+                                'catalogue' => 'katalog',
+                                'agency_type' => 'forsk',
+                                'group' => '870970-forsk');
+    $record_source = $this->record_source_from_pid($pid);
+    list($agency, $catalogue) = $this->split_record_source($record_source);
+    foreach ($group_source_tab as $group) {
+      if ($group['relation'] == $relation
+       && $group['catalogue'] == $catalogue
+       && $this->is_agency_type($group['agency_type'], $agency)) {
+        $record_source = $group['group'];
+      }
+    }
+    return $record_source;
   }
 
   /** \brief sets valid relations from the search profile
@@ -1119,9 +1139,28 @@ class openSearch extends webServiceServer {
     }
   }
 
-  private function kilde($id) {
-    list($ret, $dummy) = explode(':', $id);
+  private function is_agency_type($agency_type, $agency) {
+    static $agency_type_tab;
+    if (empty($agency_type_tab)) {
+      require_once 'OLS_class_lib/agency_type_class.php';
+      $cache = $this->get_agency_cache_info();
+      $agency_type_tab = new agency_type($this->config->get_value('agency_types', 'setup'), 
+                                         $cache['host'], $cache['port'], $cache['expire']);
+    }
+    $branch_type = $agency_type_tab->get_branch_type($agency);
+    if ($agency_type == 'forsk') {
+      return $branch_type <> 'D';
+    }
+    return FALSE;
+  }
+
+  private function record_source_from_pid($id) {
+    list($ret, $dummy) = explode(':', $id, 2);
     return $ret;
+  }
+
+  private function split_record_source($record_source) {
+    return explode('-', $record_source, 2);
   }
 
   /** \brief Fetch a profile $profile_name for agency $agency
@@ -1129,13 +1168,9 @@ class openSearch extends webServiceServer {
    */
   private function fetch_profile_from_agency($agency, $profile_name) {
     require_once 'OLS_class_lib/search_profile_class.php';
-    if (!($host = $this->config->get_value('profile_cache_host', 'setup')))
-      $host = $this->config->get_value('cache_host', 'setup');
-    if (!($port = $this->config->get_value('profile_cache_port', 'setup')))
-      $port = $this->config->get_value('cache_port', 'setup');
-    if (!($expire = $this->config->get_value('profile_cache_expire', 'setup')))
-      $expire = $this->config->get_value('cache_expire', 'setup');
-    $profiles = new search_profiles($this->config->get_value('agency_search_profile', 'setup'), $host, $port, $expire);
+    $cache = $this->get_agency_cache_info();
+    $profiles = new search_profiles($this->config->get_value('agency_search_profile', 'setup'), 
+                                    $cache['host'], $cache['port'], $cache['expire']);
     $profile = $profiles->get_profile($agency, $profile_name, $this->search_profile_version);
     if (is_array($profile)) {
       return $profile;
@@ -1143,6 +1178,16 @@ class openSearch extends webServiceServer {
     else {
       return FALSE;
     }
+  }
+
+  private function get_agency_cache_info() {
+    if (!($ret['host'] = $this->config->get_value('agency_cache_host', 'setup')))
+      $ret['host'] = $this->config->get_value('cache_host', 'setup');
+    if (!($ret['port'] = $this->config->get_value('agency_cache_port', 'setup')))
+      $ret['port'] = $this->config->get_value('cache_port', 'setup');
+    if (!($ret['expire'] = $this->config->get_value('agency_cache_expire', 'setup')))
+      $ret['expire'] = $this->config->get_value('cache_expire', 'setup');
+    return $ret;
   }
 
   /** \brief Build bq (BoostQuery) as field:content^weight
