@@ -1096,6 +1096,7 @@ class openSearch extends webServiceServer {
   }
 
   /** \brief group agency-catalog by group_source_tab
+   *  ... group_source_tab could be defined elsewhere (agency or ini-file or ...)
    *
    */
   private function group_record_source_by_relation($pid, $relation) {
