@@ -1029,6 +1029,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Målgruppe (facet)</title>
+			<title lang="en">Audience (facet)</title>
+			<map>
+				<name set="facet">audience</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Voksen- eller børnematerialer (facet)</title>
 			<title lang="en">Adult or childrens materials (facet)</title>
 			<map>
@@ -1047,6 +1054,20 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="en">Date (facet)</title>
 			<map>
 				<name set="facet">date</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">Genre (facet)</title>
+			<title lang="en">Genre (facet)</title>
+			<map>
+				<name set="facet">genre</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">Genre kategori (facet)</title>
+			<title lang="en">Genre category (facet)</title>
+			<map>
+				<name set="facet">genreCategory</name>
 			</map>
 		</index>
 		<index>
@@ -1071,10 +1092,24 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Målgruppe (frase)</title>
+			<title lang="en">Audience (phrase)</title>
+			<map>
+				<name set="phrase">audience</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Ophav (frase)</title>
 			<title lang="en">Creator (phrase)</title>
 			<map>
 				<name set="phrase">creator</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">Genre (frase)</title>
+			<title lang="en">Genre (phrase)</title>
+			<map>
+				<name set="phrase">genre</name>
 			</map>
 		</index>
 		<index>
@@ -1127,6 +1162,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Titel fra serie (frase)</title>
+			<title lang="en">Title from series (phrase)</title>
+			<map>
+				<name set="phrase">titleFromSeries</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Serietitel (frase)</title>
 			<title lang="en">Series title (phrase)</title>
 			<map>
@@ -1162,6 +1204,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Målgruppe (enkeltord)</title>
+			<title lang="en">Audience (term)</title>
+			<map>
+				<name set="term">audience</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Voksen- eller børnemateriale (enkeltord)</title>
 			<title lang="en">Adult or childrens materials (term)</title>
 			<map>
@@ -1169,10 +1218,24 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Ophav (enkeltord)</title>
+			<title lang="en">Creator (term)</title>
+			<map>
+				<name set="term">creator</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Fritekst (enkeltord)</title>
 			<title lang="en">Default (term)</title>
 			<map>
 				<name set="term">default</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">Genre (enkeltord)</title>
+			<title lang="en">Genre (term)</title>
+			<map>
+				<name set="term">genre</name>
 			</map>
 		</index>
 		<index>
