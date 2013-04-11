@@ -63,6 +63,7 @@ class openSearch extends webServiceServer {
 
   public function search($param) {
     // set some defines
+//if (DEBUG) { var_dump($param); die(); }
     $this->tracking_id = verbose::set_tracking_id('os', $param->trackingId->_value);
     if (!$this->aaa->has_right('opensearch', 500)) {
       $ret_error->searchResponse->_value->error->_value = 'authentication_error';
@@ -237,6 +238,9 @@ class openSearch extends webServiceServer {
     if ($sort == 'random') {
       if ($err = $this->get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, $filter_q, '', $debug_query, $solr_arr))
         $error = $err;
+      else {
+        $numFound = $solr_arr['response']['numFound'];
+      }
     }
     else {
       if ($err = $this->get_solr_array($solr_query['edismax'], 0, $rows, $sort_q, $rank_q, $facet_q, $filter_q, $boost_str, $debug_query, $solr_arr))
@@ -269,11 +273,10 @@ class openSearch extends webServiceServer {
       for ($w_idx = 0; $w_idx < $rows; $w_idx++) {
         do {
           $no = rand(0, $numFound-1);
-        }
-        while (isset($used_search_fid[$no]));
+        } while (isset($used_search_fid[$no]));
         $used_search_fid[$no] = TRUE;
         $this->get_solr_array($solr_query['edismax'], $no, 1, '', '', '', $filter_q, '', $debug_query, $solr_arr);
-        $uid = $solr_arr['response']['docs'][0]['unit.id'];
+        $uid = $solr_arr['response']['docs'][0]['unit.id'][0];
         //$local_data[$uid] = $solr_arr['response']['docs']['rec.collectionIdentifier'];
         $work_ids[] = array($uid);
       }
