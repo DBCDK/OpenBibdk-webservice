@@ -55,6 +55,8 @@ class openSearch extends webServiceServer {
       $mir = 20;
     define(MAX_IDENTICAL_RELATIONS, $mir);
     define(MAX_OBJECTS_IN_WORK, 100);
+    define('AND_OP', 'AND');
+    define('OR_OP', 'OR');
   }
 
   /**
@@ -442,7 +444,7 @@ class openSearch extends webServiceServer {
             }
           }
           $post_query = 'q=' . urlencode($q) .
-                       '&fq=' . $filter_q . '+AND+unit.isPrimaryObject:true' .
+                       '&fq=(' . $filter_q . ')+AND+unit.isPrimaryObject:true' .
                        '&wt=phps' .
                        '&start=0' .
                        '&rows=' . '999999' . // $no_of_rows . 
@@ -603,7 +605,7 @@ class openSearch extends webServiceServer {
 // try to get a better hitCount by looking for primaryObjects only 
     if (($start > 1) || $more) {
 // ignore errors here
-      $err = $this->get_solr_array($solr_query['edismax'], 0, 0, '', '', '', $filter_q . '+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr);
+      $err = $this->get_solr_array($solr_query['edismax'], 0, 0, '', '', '', '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr);
       if ($solr_arr['response']['numFound'] > 0) {
         verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $solr_arr['response']['numFound']);
         $numFound = $solr_arr['response']['numFound'];
