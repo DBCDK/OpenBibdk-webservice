@@ -89,7 +89,8 @@ agency_cache_expire = 60
 ; agency_search_profile =  http://some.openagency/?action=openSearchProfile&agencyId=%s&profileVersion=%s
 agency_search_profile = @AGENCY_SEARCH_PROFILE@
 ; 
-; agency_types = http://some.openagency/?action=findLibrary&libraryType=Forskningsbibliotek
+; agency_types = http://some.openagency/?action=findLibrary&libraryType=Forskningsbibliotek&outputType=json
+; agency_types = http://some.openagency/?action=findLibrary&libraryType=Alle&outputType=json
 agency_types = @AGENCY_TYPES@
 
 ; holding db - return number of items in stock and number of items available for lending
@@ -115,6 +116,11 @@ solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid
 ; default search_profile setting
 agency_fallback = @AGENCY_FALLBACK@
 profile_fallback = @AGENCY_PROFILE_FALLBACK@
+
+; relation_group_source_tab
+; ...[relation][agency type][collection name] = mapped source
+relation_group_source_tab[dbcbib:isPartOfManifestation][Forskningsbibliotek][katalog] = 870970-forsk
+
 
 ; phrase indexes
 phrase_index[] = facet
@@ -304,7 +310,7 @@ action[getObject][] = trackingId
 ;showinfo[] = version:            __version.setup__
 ;showinfo[] = logfile:            __logfile.setup__
 ;showinfo[] = verbose:            __verbose__
-;showinfo[] = agency:              __open_agency__
+;showinfo[] = agency:             __open_agency__
 ;showinfo[] = holdings:           __holdings_db__
 ;showinfo[] = aaa_credentials:    __aaa_credentials__
 ;showinfo[] = default_repository: __default_repository__

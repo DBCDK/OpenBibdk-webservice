@@ -1101,22 +1101,17 @@ class openSearch extends webServiceServer {
   }
 
   /** \brief group agency-catalog by group_source_tab
-   *  ... group_source_tab could be defined elsewhere (agency or ini-file or ...)
    *
    */
   private function group_record_source_by_relation($pid, $relation) {
-    $group_source_tab[] = array('relation' => 'dbcbib:isPartOfManifestation',
-                                'catalogue' => 'katalog',
-                                'agency_type' => 'forsk',
-                                'group' => '870970-forsk');
+    static $group_source_tab;
+    if (!isset($group_source_tab)) {
+      $group_source_tab = $this->config->get_value('relation_group_source_tab', 'setup');
+    }
     $record_source = $this->record_source_from_pid($pid);
-    list($agency, $catalogue) = $this->split_record_source($record_source);
-    foreach ($group_source_tab as $group) {
-      if ($group['relation'] == $relation
-       && $group['catalogue'] == $catalogue
-       && $this->is_agency_type($group['agency_type'], $agency)) {
-        $record_source = $group['group'];
-      }
+    list($agency, $collection) = $this->split_record_source($record_source);
+    if ($group_source = $group_source_tab[$relation][$this->get_agency_type($agency)][$collection]) {
+      return $group_source;
     }
     return $record_source;
   }
@@ -1145,18 +1140,18 @@ class openSearch extends webServiceServer {
     }
   }
 
-  private function is_agency_type($agency_type, $agency) {
+  private function get_agency_type($agency) {
     static $agency_type_tab;
-    if (empty($agency_type_tab)) {
+    if (!isset($agency_type_tab)) {
       require_once 'OLS_class_lib/agency_type_class.php';
       $cache = $this->get_agency_cache_info();
-      $agency_type_tab = new agency_type($this->config->get_value('agency_types', 'setup'), 
+      $agency_types = new agency_type($this->config->get_value('agency_types', 'setup'), 
                                          $cache['host'], $cache['port'], $cache['expire']);
     }
-    $branch_type = $agency_type_tab->get_branch_type($agency);
-    if ($agency_type == 'forsk') {
-      return $branch_type <> 'D';
-    }
+    $agency_type = $agency_types->get_agency_type($agency);
+    if ($agency_types->get_branch_type($agency) <> 'D')
+      return $agency_type;
+
     return FALSE;
   }
 
