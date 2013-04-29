@@ -348,6 +348,7 @@ You should have received a copy of the GNU Affero General Public License along w
 					</xs:sequence>
 					<xs:element ref="marcx:collection"/>
 					<xs:element ref="docbook:article"/>
+					<xs:element ref="os:error"/>
 				</xs:choice>
 				<xs:element ref="os:identifier"/>
 				<xs:element ref="os:creationDate" minOccurs="0"/>

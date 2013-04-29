@@ -709,14 +709,12 @@ class openSearch extends webServiceServer {
     }
     foreach ($fpids as $fpid_number => $fpid) {
       if ($this->deleted_object($fpid->_value)) {
-        $error = 'Error: deleted record: ' . $fpid->_value;
-        return $ret_error;
+        $rec_error = 'Error: deleted record: ' . $fpid->_value;
       }
-      if ($error = $this->get_fedora_raw($fpid->_value, $fedora_result))
-        return $ret_error;
-// 2DO 
-// relations are now on the unit, so this has to be found
-      if ($param->relationData->_value || 
+      elseif ($error = $this->get_fedora_raw($fpid->_value, $fedora_result)) {
+        $rec_error = 'Error: unknown/missing record: ' . $fpid->_value;
+      }
+      elseif ($param->relationData->_value || 
           $format['found_solr_format'] || 
           $this->xs_boolean($param->includeHoldingsCount->_value)) {
         $this->get_fedora_rels_hierarchy($fpid->_value, $fedora_rels_hierarchy);
@@ -737,18 +735,24 @@ class openSearch extends webServiceServer {
 //die();
       $o->collection->_value->resultPosition->_value = $fpid_number + 1;
       $o->collection->_value->numberOfObjects->_value = 1;
-      $o->collection->_value->object[]->_value =
-        $this->parse_fedora_object($fedora_result,
-                                   $fedora_addi_relation,
-                                   $param->relationData->_value,
-                                   $fpid->_value,
-                                   $filter_agency,
-                                   $format,
-                                   $no_of_holdings);
+      if ($rec_error) {
+        $o->collection->_value->object[]->_value->error->_value = $rec_error;
+        unset($rec_error);
+      } else {
+        $o->collection->_value->object[]->_value =
+          $this->parse_fedora_object($fedora_result,
+                                     $fedora_addi_relation,
+                                     $param->relationData->_value,
+                                     $fpid->_value,
+                                     $filter_agency,
+                                     $format,
+                                     $no_of_holdings);
+      }
       $collections[]->_value = $o;
       unset($o);
       $id_array[] = $unit_id;
       $work_ids[$fpid_number + 1] = array($unit_id);
+      unset($unit_id);
     }
 
     if ($format['found_open_format']) {
