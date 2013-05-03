@@ -1267,10 +1267,10 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-			<title lang="da">Materialetype (enkeltord)</title>
-			<title lang="en">Material type (term)</title>
+			<title lang="da">xx (enkeltord)</title>
+			<title lang="en">xx (term)</title>
 			<map>
-				<name set="term">type</name>
+				<name set="term">partOf</name>
 			</map>
 		</index>
 		<index>
@@ -1313,6 +1313,20 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="en">Reviewer (term)</title>
 			<map>
 				<name set="term">reviewer</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">Materialetype (enkeltord)</title>
+			<title lang="en">Material type (term)</title>
+			<map>
+				<name set="term">type</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">xx (enkeltord)</title>
+			<title lang="en">xx (term)</title>
+			<map>
+				<name set="term">typeCategory</name>
 			</map>
 		</index>
 		<index>
