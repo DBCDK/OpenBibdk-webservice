@@ -1064,6 +1064,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Form (facet)</title>
+			<title lang="en">Form (facet)</title>
+			<map>
+				<name set="facet">form</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Genre (facet)</title>
 			<title lang="en">Genre (facet)</title>
 			<map>
@@ -1082,6 +1089,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="en">Language (facet)</title>
 			<map>
 				<name set="facet">language</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">Niveau (facet)</title>
+			<title lang="en">Level (facet)</title>
+			<map>
+				<name set="facet">level</name>
 			</map>
 		</index>
 		<index>
@@ -1120,6 +1134,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Originaltitel (frase)</title>
+			<title lang="en">Original title (phrase)</title>
+			<map>
+				<name set="phrase">originalTitle</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Anmeldt ophav (frase)</title>
 			<title lang="en">Reviewed creator (phrase)</title>
 			<map>
@@ -1141,13 +1162,6 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-			<title lang="da">Anmeldt emne (frase)</title>
-			<title lang="en">Reviewed subject (phrase)</title>
-			<map>
-				<name set="phrase">reviewedSubject</name>
-			</map>
-		</index>
-		<index>
 			<title lang="da">Anmeldt titel (frase)</title>
 			<title lang="en">Reviewed title (phrase)</title>
 			<map>
@@ -1162,8 +1176,8 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-			<title lang="da">Emne (frase)</title>
-			<title lang="en">Subject (phrase)</title>
+			<title lang="da">Emne (frase) - pt kun anmeldelser</title>
+			<title lang="en">Subject (phrase) - at the moment only reviews</title>
 			<map>
 				<name set="phrase">subject</name>
 			</map>
@@ -1194,13 +1208,6 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="en">Identifier (record/object)</title>
 			<map>
 				<name set="rec">id</name>
-			</map>
-		</index>
-		<index>
-			<title lang="da">Id (unit)</title>
-			<title lang="en">Identifier (unit)</title>
-			<map>
-				<name set="unit">id</name>
 			</map>
 		</index>
 		<index>
@@ -1267,13 +1274,6 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-			<title lang="da">xx (enkeltord)</title>
-			<title lang="en">xx (term)</title>
-			<map>
-				<name set="term">partOf</name>
-			</map>
-		</index>
-		<index>
 			<title lang="da">Hovedsprog (enkeltord)</title>
 			<title lang="en">Primary language (term)</title>
 			<map>
@@ -1313,6 +1313,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="en">Reviewer (term)</title>
 			<map>
 				<name set="term">reviewer</name>
+			</map>
+		</index>
+		<index>
+			<title lang="da">Emne (enkeltord) - pt kun anmeldelser</title>
+			<title lang="en">Subject (term) - at the moment only reviews</title>
+			<map>
+				<name set="term">subject</name>
 			</map>
 		</index>
 		<index>
