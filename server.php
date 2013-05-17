@@ -416,7 +416,7 @@ class openSearch extends webServiceServer {
           }
         }
       }
-      if (!empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {    // use post here because query can be very long
+      if (!empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {
         foreach ($add_query as $add_idx => $add_q) {
           if ($this->separate_field_query_style) {
               $add_q =  '(' . $add_q . ')';
@@ -425,11 +425,11 @@ class openSearch extends webServiceServer {
               $add_q =  $which_rec_id . ':(' . $add_q . ')';
           }
           if ($this->xs_boolean($param->allObjects->_value)) {
-            $chk_query['edismax'] .=  $add_q;
+            $chk_query['edismax'] =  $add_q;
           }
           else {
             $chk_query = $this->cql2solr->cql_2_edismax($param->query->_value);
-            $chk_query['edismax'] .=  ' ' . AND_OP . ' ' . $add_q;
+            $chk_query['edismax'] =  '(' . $chk_query['edismax'] . ') ' . AND_OP . ' ' . $add_q;
           }
           if ($chk_query['error']) {
             $error = $chk_query['error'];
@@ -459,7 +459,7 @@ class openSearch extends webServiceServer {
             echo 'post_array: ' . $this->repository['solr'] . '?' . $post_query . "\n";
           }
 
-          $this->curl->set_post($post_query);
+          $this->curl->set_post($post_query); // use post here because query can be very long
           $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded; charset=utf-8'));
           $this->watch->start('Solr 2');
           $solr_result = $this->curl->get($this->repository['solr']);
@@ -1550,7 +1550,7 @@ class openSearch extends webServiceServer {
                   }
                   $o->_namespace = $record->item(0)->lookupNamespaceURI($tag->prefix);
                   $o->_value = trim($tag->nodeValue);
-                  if (!($tag->localName == 'subject' && $tag->nodeValue == 'undefined'))
+                  if ($tag->localName && (!($tag->localName == 'subject') && ($tag->nodeValue == 'undefined')))
                     $rec-> {$tag->localName}[] = $o;
                   unset($o);
                 }
