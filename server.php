@@ -1550,8 +1550,8 @@ class openSearch extends webServiceServer {
                   }
                   $o->_namespace = $record->item(0)->lookupNamespaceURI($tag->prefix);
                   $o->_value = trim($tag->nodeValue);
-                  if ($tag->localName && (!($tag->localName == 'subject') && ($tag->nodeValue == 'undefined')))
-                    $rec-> {$tag->localName}[] = $o;
+                  if ($tag->localName && !($tag->localName == 'subject' && $tag->nodeValue == 'undefined'))
+                    $rec->{$tag->localName}[] = $o;
                   unset($o);
                 }
 //              }
