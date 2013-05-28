@@ -611,6 +611,9 @@ class openSearch extends webServiceServer {
         $numFound = $solr_arr['response']['numFound'];
       }
     }
+    else {
+      $numFound = count($collections);
+    }
 
 //var_dump($solr_2_arr);
 //var_dump($work_struct);
