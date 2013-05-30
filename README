@@ -40,6 +40,8 @@ USe Doxygen to get code documentation
 
 Installation
 ------------
+The webservice requires [class_lib](svn://oss.dbc.dk/sync_php/php/OpenLibrary/class_lib) be installed.
+
 In the php.ini file:
 - make sure that always_populate_raw_post_data = On
 
