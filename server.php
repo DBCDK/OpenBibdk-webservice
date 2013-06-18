@@ -228,8 +228,9 @@ class openSearch extends webServiceServer {
           $facet_q .= '&facet.field=' . $facet_name->_value;
         }
       }
-      else
+      elseif (is_scalar($param->facets->_value->facetName->_value)) {
         $facet_q .= '&facet.field=' . $param->facets->_value->facetName->_value;
+      }
     }
 
     verbose::log(TRACE, 'CQL to EDISMAX: ' . $param->query->_value . ' -> ' . $solr_query['edismax']);
@@ -603,16 +604,11 @@ class openSearch extends webServiceServer {
     }
 
 // try to get a better hitCount by looking for primaryObjects only 
-    if (($start > 1) || $more) {
 // ignore errors here
-      $err = $this->get_solr_array($solr_query['edismax'], 0, 0, '', '', '', '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr);
-      if ($solr_arr['response']['numFound'] > 0) {
-        verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $solr_arr['response']['numFound']);
-        $numFound = $solr_arr['response']['numFound'];
-      }
-    }
-    else {
-      $numFound = count($collections);
+    $err = $this->get_solr_array($solr_query['edismax'], 0, 0, '', '', '', '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr);
+    if (isset($solr_arr['response']['numFound'])) {
+      verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $solr_arr['response']['numFound']);
+      $numFound = $solr_arr['response']['numFound'];
     }
 
 //var_dump($solr_2_arr);
