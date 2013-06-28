@@ -1099,12 +1099,26 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+            <title lang="da">Del af (facet)</title>
+            <title lang="en">Part of (facet)</title>
+            <map>
+                <name set="facet">partOf</name>
+            </map>
+        </index>
+		<index>
 			<title lang="da">Emne (facet)</title>
 			<title lang="en">Subject (facet)</title>
 			<map>
 				<name set="facet">subject</name>
 			</map>
 		</index>
+		<index>
+            <title lang="da">Serietitle (facet)</title>
+            <title lang="en">Title of series (facet)</title>
+            <map>
+                <name set="facet">titleSeries</name>
+            </map>
+        </index>
 		<index>
 			<title lang="da">Materialetype (facet)</title>
 			<title lang="en">Material type (facet)</title>
