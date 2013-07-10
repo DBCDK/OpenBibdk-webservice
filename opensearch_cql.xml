@@ -1043,6 +1043,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+            <title lang="da">Brugerniveau (facet)</title>
+            <title lang="en">Audience category (facet)</title>
+            <map>
+                <name set="facet">audienceCategory</name>
+            </map>
+        </index>
+		<index>
 			<title lang="da">Voksen- eller børnematerialer (facet)</title>
 			<title lang="en">Adult or childrens materials (facet)</title>
 			<map>
@@ -1071,6 +1078,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+            <title lang="da">Spilplatform (facet)</title>
+            <title lang="en">Game platform (facet)</title>
+            <map>
+                <name set="facet">gamePlatform</name>
+            </map>
+        </index>
+		<index>
 			<title lang="da">Genre (facet)</title>
 			<title lang="en">Genre (facet)</title>
 			<map>
@@ -1092,17 +1106,45 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-			<title lang="da">Niveau (facet)</title>
+			<title lang="da">Fagligt niveau (facet)</title>
 			<title lang="en">Level (facet)</title>
 			<map>
 				<name set="facet">level</name>
 			</map>
 		</index>
 		<index>
+            <title lang="da">Lettal (facet)</title>
+            <title lang="en">Readability level (facet)</title>
+            <map>
+                <name set="facet">let</name>
+            </map>
+        </index>
+        <index>
+            <title lang="da">Litterær form (facet)</title>
+            <title lang="en">Literary form (facet)</title>
+            <map>
+                <name set="facet">literaryForm</name>
+            </map>
+        </index>
+        <index>
+            <title lang="da">Lix (facet)</title>
+            <title lang="en">Readability index (facet)</title>
+            <map>
+                <name set="facet">lix</name>
+            </map>
+        </index>
+		<index>
             <title lang="da">Del af (facet)</title>
             <title lang="en">Part of (facet)</title>
             <map>
                 <name set="facet">partOf</name>
+            </map>
+        </index>
+        <index>
+            <title lang="da">Hovedophav (facet)</title>
+            <title lang="en">Primary Creator (facet)</title>
+            <map>
+                <name set="facet">primaryCreator</name>
             </map>
         </index>
 		<index>
