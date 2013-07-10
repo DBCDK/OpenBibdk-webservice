@@ -1071,6 +1071,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+            <title lang="da">DK5 Klassifikation (facet)</title>
+            <title lang="en">DK5 classification (facet)</title>
+            <map>
+                <name set="facet">dk5</name>
+            </map>
+        </index>
+		<index>
 			<title lang="da">Form (facet)</title>
 			<title lang="en">Form (facet)</title>
 			<map>
