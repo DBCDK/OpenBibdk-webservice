@@ -11,12 +11,15 @@
 					td {font-family: verdana; font-size: 10}
 					ol {font-family: verdana; font-size: 10}
 					ul {font-family: verdana; font-size: 12}
-					p {font-family: verdana; font-size: 12}
+					div {font-family: verdana; font-size: 12}
 					h1 {font-family: verdana; font-size: 18}
 				</style>
 			</head>
 			<body>
 				<h1>CQL Indexes</h1>
+				<div>This list is manually updated. Last updated July 23, 2013</div>
+				<div>Denne liste opdateres manuelt. Senest opdateret 23. juli 2013</div>
+				<br/>
 				<table border="1">
 					<tr>
 						<td>

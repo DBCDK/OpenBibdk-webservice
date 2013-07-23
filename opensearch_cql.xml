@@ -14,9 +14,14 @@ You should have received a copy of the GNU Affero General Public License along w
 		<port/>
 		<database/>
 	</serverInfo>
+	<metaInfo>
+	    <dateModified>07/23/2013</dateModified>
+	</metaInfo>
 	<indexInfo>
+	    <set identifier="info:srw/cql-context-set/1/cql-v1.1" name="cql"/>
 		<set identifier="http://oss.dbc.dk/ns/dkcclphrase" name="dkcclphrase"/>
 		<set identifier="http://oss.dbc.dk/ns/dkcclterm" name="dkcclterm"/>
+		<set identifier="http://oss.dbc.dk/ns/facet" name="facet"/>
 		<set identifier="http://oss.dbc.dk/ns/phrase" name="phrase"/>
 		<set identifier="info:srw/cql-context-set/2/rec-1.1" name="rec"/>
 		<set identifier="http://oss.dbc.dk/ns/term" name="term"/>
@@ -680,7 +685,7 @@ You should have received a copy of the GNU Affero General Public License along w
 		</index>
 		<index>
 			<title lang="en">No English description available</title>
-			<title lang="da">Internationale standardnumre *6)</title>
+			<title lang="da">Internationale standardnumre</title>
 			<map>
 				<name set="dkcclterm">is</name>
 			</map>
@@ -1393,8 +1398,8 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-			<title lang="da">xx (enkeltord)</title>
-			<title lang="en">xx (term)</title>
+			<title lang="da">Overordnet materialekategori (enkeltord)</title>
+			<title lang="en">Type category (term)</title>
 			<map>
 				<name set="term">typeCategory</name>
 			</map>
