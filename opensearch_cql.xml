@@ -1413,18 +1413,18 @@ You should have received a copy of the GNU Affero General Public License along w
 		</index>
 	</indexInfo>
 	<configInfo>
-		<supports type="danBooleanModifier">og</supports>
-		<supports type="danBooleanModifier">eller</supports>
-		<supports type="danBooleanModifier">ikke</supports>
-		<supports type="engBooleanModifier">and</supports>
-		<supports type="engBooleanModifier">or</supports>
-		<supports type="engBooleanModifier">not</supports>
+		<supports type="danBooleanModifier">OG</supports>
+		<supports type="danBooleanModifier">ELLER</supports>
+		<supports type="danBooleanModifier">IKKE</supports>
+		<supports type="engBooleanModifier">AND</supports>
+		<supports type="engBooleanModifier">OR</supports>
+		<supports type="engBooleanModifier">NOT</supports>
 		<supports type="relation">&gt;=</supports>
 		<supports type="relation">&gt;</supports>
 		<supports type="relation">&lt;=</supports>
 		<supports type="relation">&lt;</supports>
 		<supports type="relation">=</supports>
-		<supports type="relation">adj</supports>
+		<supports type="relation">ADJ</supports>
 		<supports type="maskingCharacter">?</supports>
 		<supports type="maskingCharacter">*</supports>
 		<supports type="booleanChar">(</supports>
