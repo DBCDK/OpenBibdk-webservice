@@ -155,6 +155,24 @@ logfile = /tmp/opensearch.log
 ;   boost_value for rank_register
 ;
 
+rank[rank_verification][word_boost][rankterm.title] = 4
+rank[rank_verification][phrase_boost][rankphrase.title] = 8
+rank[rank_verification][word_boost][rankterm.creator] = 4
+rank[rank_verification][phrase_boost][rankphrase.creator] = 6
+rank[rank_verification][word_boost][cql.allIndexes] = 1
+rank[rank_verification][phrase_boost][cql.allIndexes] = 1
+rank[rank_verification][tie] = 0.1
+
+rank[rank_subject][word_boost][rankterm.subject] = 5
+rank[rank_subject][phrase_boost][rankphrase.subject] = 10
+rank[rank_subject][word_boost][rankterm.title] = 3
+rank[rank_subject][phrase_boost][rankphrase.title] = 6
+rank[rank_subject][word_boost][rankterm.description] = 2
+rank[rank_subject][phrase_boost][rankterm.description] = 3
+rank[rank_subject][word_boost][cql.allIndexes] = 1
+rank[rank_subject][phrase_boost][cql.allIndexes] = 1
+rank[rank_subject][tie] = 0.1
+
 rank[rank_title][word_boost][dkcclterm.ti] = 4
 rank[rank_title][phrase_boost][dkcclphrase.lti] = 8
 rank[rank_title][word_boost][term.default] = 1
