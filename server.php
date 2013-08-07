@@ -1515,6 +1515,11 @@ class openSearch extends webServiceServer {
                   $rel_obj = self::extract_record($rels_dom, $tag->nodeValue, $format);
                   $rel_obj->identifier->_value = $rel_uri;
                   $rel_obj->creationDate->_value = self::get_creation_date($rels_dom);
+                  self::get_relations_from_commonData_stream($ext_relations, $rel_uri, $rels_type);
+                  if ($ext_relations) {
+                    $rel_obj->relations->_value = $ext_relations;
+                    unset($ext_relations);
+                  }
                   $rel_obj->formatsAvailable->_value = self::scan_for_formats($rels_dom);
                 }
               }
