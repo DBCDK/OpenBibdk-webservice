@@ -528,7 +528,7 @@ class openSearch extends webServiceServer {
         list($fpid, $unit_members) = self::parse_unit_for_object_ids($unit_rels_hierarchy);
         $sort_holdings = ' ';
         if ((self::xs_boolean($param->includeHoldingsCount->_value))
-         && (strpos($unit_sort_keys[$unit_id], $HOLDINGS) !== FALSE)) {
+         || (strpos($unit_sort_keys[$unit_id], $HOLDINGS) !== FALSE)) {
           $no_of_holdings = self::get_holdings($fpid);
           $sort_holdings = sprintf(' %04d ', 9999 - intval($no_of_holdings['have']));
         }
