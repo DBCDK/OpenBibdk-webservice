@@ -527,10 +527,13 @@ class openSearch extends webServiceServer {
         self::get_fedora_rels_hierarchy($unit_id, $unit_rels_hierarchy);
         list($fpid, $unit_members) = self::parse_unit_for_object_ids($unit_rels_hierarchy);
         $sort_holdings = ' ';
-        if ((self::xs_boolean($param->includeHoldingsCount->_value))
-         || (strpos($unit_sort_keys[$unit_id], $HOLDINGS) !== FALSE)) {
+        unset($no_of_holdings);
+        if (self::xs_boolean($param->includeHoldingsCount->_value)) {
           $no_of_holdings = self::get_holdings($fpid);
-          $sort_holdings = sprintf(' %04d ', 9999 - intval($no_of_holdings['have']));
+        }
+        if ((strpos($unit_sort_keys[$unit_id], $HOLDINGS) !== FALSE)) {
+          $holds = isset($no_of_holdings) ? $no_of_holdings : self::get_holdings($fpid);
+          $sort_holdings = sprintf(' %04d ', 9999 - intval($holds['have']));
         }
         $fpid_sort_keys[$fpid] = str_replace($HOLDINGS, $sort_holdings, $unit_sort_keys[$unit_id]);
         if ($error = self::get_fedora_raw($fpid, $fedora_result)) {
