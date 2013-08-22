@@ -482,7 +482,7 @@ class openSearch extends webServiceServer {
             foreach ($w_list as $w) {
               foreach ($solr_2_arr as $s_2_a) {
                 foreach ($s_2_a['response']['docs'] as $fdoc) {
-                  $p_id =  self::scalar_or_first_elem($$fdoc['unit.id']);
+                  $p_id =  self::scalar_or_first_elem($fdoc['unit.id']);
                   if ($p_id == $w) {
                     $hit_fid_array[] = $w;
                     $unit_sort_keys[$w] = $fdoc['sort.complexKey'] . '  ' . $p_id;
