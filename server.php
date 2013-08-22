@@ -364,8 +364,10 @@ class openSearch extends webServiceServer {
                 print_r($uid_array);
               }
             }
-            else
+            else {
+              verbose::log(WARNING, 'Cannot find work_id for unit: ' . $uid);
               $uid_array = array($uid);
+            }
           }
           else
             $uid_array = array($uid);
@@ -1288,11 +1290,11 @@ class openSearch extends webServiceServer {
     $dom->preserveWhiteSpace = false;
     if (@ $dom->loadXML($rels_hierarchy))
       $imo = $dom->getElementsByTagName('isPrimaryUnitObjectFor');
-      if ($imo->item(0))
+      if (is_object($imo) && $imo->item(0))
         return($imo->item(0)->nodeValue);
       else {
         $imo = $dom->getElementsByTagName('isMemberOfWork');
-        if ($imo->item(0))
+        if (is_object($imo) && $imo->item(0))
           return($imo->item(0)->nodeValue);
       }
 
