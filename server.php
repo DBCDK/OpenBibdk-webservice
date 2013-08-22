@@ -279,7 +279,7 @@ class openSearch extends webServiceServer {
         } while (isset($used_search_fid[$no]));
         $used_search_fid[$no] = TRUE;
         self::get_solr_array($solr_query['edismax'], $no, 1, '', '', '', $filter_q, '', $debug_query, $solr_arr);
-        $uid = $solr_arr['response']['docs'][0]['unit.id'][0];
+        $uid =  self::scalar_or_first_elem($solr_arr['response']['docs'][0]['unit.id']);
         //$local_data[$uid] = $solr_arr['response']['docs']['rec.collectionIdentifier'];
         $work_ids[] = array($uid);
       }
@@ -482,7 +482,7 @@ class openSearch extends webServiceServer {
             foreach ($w_list as $w) {
               foreach ($solr_2_arr as $s_2_a) {
                 foreach ($s_2_a['response']['docs'] as $fdoc) {
-                  $p_id = $fdoc['unit.id'][0];
+                  $p_id =  self::scalar_or_first_elem($$fdoc['unit.id']);
                   if ($p_id == $w) {
                     $hit_fid_array[] = $w;
                     $unit_sort_keys[$w] = $fdoc['sort.complexKey'] . '  ' . $p_id;
@@ -810,13 +810,20 @@ class openSearch extends webServiceServer {
     static $u_err = 0;
     $search_ids = array();
     foreach ($solr_docs as &$fdoc) {
-      if ($uid = $fdoc['unit.id'][0]) {
-        $search_ids[] = $uid;
+      if ($uid = $fdoc['unit.id']) {
+        $search_ids[] = self::scalar_or_first_elem($uid);
       }
       elseif (++$u_err < 10) {
         verbose::log(FATAL, 'Missing unit.id in solr_result. Record no: ' . (count($search_ids) + $u_err));
       }
     }
+  }
+
+  private function scalar_or_first_elem($mixed) {
+    if (is_array($mixed) || is_object($mixed)) {
+      return reset($mixed);
+    }
+    return $mixed;
   }
 
   private function set_format($objectFormat, $open_format, $solr_format) {
@@ -894,7 +901,8 @@ class openSearch extends webServiceServer {
             if (is_array($solr[0]['response']['docs'])) {
               $fpid = $c->_value->collection->_value->object[$mani_no]->_value->identifier->_value;
               foreach ($solr[0]['response']['docs'] as $solr_doc) {
-                if (is_array($solr_doc['unit.id']) && in_array($unit_no, $solr_doc['unit.id'])) {
+                $doc_units = is_array($solr_doc['unit.id']) ? $solr_doc['unit.id'] : array($solr_doc['unit.id']);
+                if (is_array($doc_units) && in_array($unit_no, $doc_units)) {
                   foreach ($format_tags as $format_tag) {
                     if ($solr_doc[$format_tag] || $format_tag == 'fedora.identifier') {
                       if (strpos($format_tag, '.')) {
