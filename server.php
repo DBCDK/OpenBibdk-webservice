@@ -37,6 +37,7 @@ class openSearch extends webServiceServer {
   protected $query_language = 'cqleng'; 
   protected $number_of_fedora_calls = 0;
   protected $number_of_fedora_cached = 0;
+  protected $use_field_collapsing = 'fedoraPid';  // set to FALSE to drop fieldCollapsing
   protected $separate_field_query_style = TRUE; // seach as field:(a OR b) ie FALSE or (field:a OR field:b) ie TRUE
   protected $valid_relation = array(); 
   protected $valid_source = array(); 
@@ -242,15 +243,15 @@ class openSearch extends webServiceServer {
       if ($err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, $filter_q, '', $debug_query, $solr_arr))
         $error = $err;
       else {
-        $numFound = $solr_arr['response']['numFound'];
+        $numFound = self::get_num_found($solr_arr);
       }
     }
     else {
       if ($err = self::get_solr_array($solr_query['edismax'], 0, $rows, $sort_q, $rank_q, $facet_q, $filter_q, $boost_str, $debug_query, $solr_arr))
         $error = $err;
       else {
-        self::extract_unit_id_from_solr($solr_arr['response']['docs'], $search_ids);
-        $numFound = $solr_arr['response']['numFound'];
+        self::extract_unit_id_from_solr($solr_arr, $search_ids);
+        $numFound = self::get_num_found($solr_arr);
       }
     }
     $this->watch->stop('Solr');
@@ -266,7 +267,7 @@ class openSearch extends webServiceServer {
       $debug_result->parsedQuery->_value = $solr_arr['debug']['parsedquery'];
       $debug_result->parsedQueryString->_value = $solr_arr['debug']['parsedquery_toString'];
     }
-    $facets = self::parse_for_facets($solr_arr['facet_counts']);
+    $facets = self::parse_for_facets($solr_arr);
 
     $this->watch->start('Build_id');
     $work_ids = $used_search_fids = array();
@@ -279,7 +280,7 @@ class openSearch extends webServiceServer {
         } while (isset($used_search_fid[$no]));
         $used_search_fid[$no] = TRUE;
         self::get_solr_array($solr_query['edismax'], $no, 1, '', '', '', $filter_q, '', $debug_query, $solr_arr);
-        $uid =  self::scalar_or_first_elem($solr_arr['response']['docs'][0]['unit.id']);
+        $uid =  self::get_first_solr_element($solr_arr, 'unit.id');
         //$local_data[$uid] = $solr_arr['response']['docs']['rec.collectionIdentifier'];
         $work_ids[] = array($uid);
       }
@@ -313,8 +314,8 @@ class openSearch extends webServiceServer {
             return $ret_error;
           }
           else {
-            self::extract_unit_id_from_solr($solr_arr['response']['docs'], $search_ids);
-            $numFound = $solr_arr['response']['numFound'];
+            self::extract_unit_id_from_solr($solr_arr, $search_ids);
+            $numFound = self::get_num_found($solr_arr);
           }
           $this->watch->stop('Solr_add');
         }
@@ -550,11 +551,20 @@ class openSearch extends webServiceServer {
         }
         if ($debug_query) {
           unset($explain);
-          foreach ($solr_arr['response']['docs'] as $solr_idx => $solr_rec) {
-            if ($fpid == $solr_rec['fedoraPid']) {
-              //$strange_idx = $solr_idx ? ' '.$solr_idx : '';
-              $explain = $solr_arr['debug']['explain'][$fpid];
-              break;
+          if ($this->use_field_collapsing) {
+            foreach ($solr_arr['grouped'][$this->use_field_collapsing]['groups'] as $solr_idx => $solr_grp) {
+              if ($fpid == $solr_grp['groupValue']) {
+                $explain = $solr_arr['debug']['explain'][$fpid];
+                break;
+              }
+            }
+          }
+          else {
+            foreach ($solr_arr['response']['docs'] as $solr_idx => $solr_rec) {
+              if ($fpid == $solr_rec['fedoraPid']) {
+                $explain = $solr_arr['debug']['explain'][$fpid];
+                break;
+              }
             }
           }
 
@@ -615,10 +625,12 @@ class openSearch extends webServiceServer {
 // try to get a better hitCount by looking for primaryObjects only 
 // ignore errors here
     $err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', '', '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr);
-    if (isset($solr_arr['response']['numFound'])) {
-      verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $solr_arr['response']['numFound']);
-      $numFound = $solr_arr['response']['numFound'];
+    if ($n = self::get_num_found($solr_arr)) {
+      verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $n);
+      $numFound = $n;
     }
+/*
+*/
 
 //var_dump($solr_2_arr);
 //var_dump($work_struct);
@@ -806,19 +818,64 @@ class openSearch extends webServiceServer {
 
   /*******************************************************************************/
 
-  private function extract_unit_id_from_solr($solr_docs, &$search_ids) {
+  /** \brief Encapsules how to get the data from the first element
+   *
+   */
+  private function get_first_solr_element($solr_arr, $element) {
+    if ($this->use_field_collapsing) {
+      $solr_docs = &$solr_arr['grouped'][$this->use_field_collapsing]['groups'][0]['doclist']['docs'];
+    }
+    else {
+      $solr_docs = &$solr_arr['response']['docs'];
+    }
+    return self::scalar_or_first_elem($solr_docs[0][$element]);
+  }
+
+  /** \brief Encapsules how to get hit count from the solr result
+   *
+   */
+  private function get_num_found($solr_arr) {
+    if ($this->use_field_collapsing) {
+      return $solr_arr['grouped'][$this->use_field_collapsing]['ngroups'];
+    }
+    else {
+      return $solr_arr['response']['numFound'];
+    }
+  }
+
+  /** \brief Encapsules extraction of unit.id's from the solr result
+   *
+   */
+  private function extract_unit_id_from_solr($solr_arr, &$search_ids) {
     static $u_err = 0;
     $search_ids = array();
-    foreach ($solr_docs as &$fdoc) {
-      if ($uid = $fdoc['unit.id']) {
-        $search_ids[] = self::scalar_or_first_elem($uid);
+    if ($this->use_field_collapsing) {
+      $solr_groups = &$solr_arr['grouped'][$this->use_field_collapsing]['groups'];
+      foreach ($solr_groups as &$gdoc) {
+        if ($uid = $gdoc['doclist']['docs'][0]['unit.id']) {
+          $search_ids[] = self::scalar_or_first_elem($uid);
+        }
+        elseif (++$u_err < 10) {
+          verbose::log(FATAL, 'Missing unit.id in solr_result. Record no: ' . (count($search_ids) + $u_err));
+        }
       }
-      elseif (++$u_err < 10) {
-        verbose::log(FATAL, 'Missing unit.id in solr_result. Record no: ' . (count($search_ids) + $u_err));
+    }
+    else {
+      $solr_docs = &$solr_arr['response']['docs'];
+      foreach ($solr_docs as &$fdoc) {
+        if ($uid = $fdoc['unit.id']) {
+          $search_ids[] = self::scalar_or_first_elem($uid);
+        }
+        elseif (++$u_err < 10) {
+          verbose::log(FATAL, 'Missing unit.id in solr_result. Record no: ' . (count($search_ids) + $u_err));
+        }
       }
     }
   }
 
+  /** \brief Return first element of array or the element for scalar vars
+   *
+   */
   private function scalar_or_first_elem($mixed) {
     if (is_array($mixed) || is_object($mixed)) {
       return reset($mixed);
@@ -826,6 +883,9 @@ class openSearch extends webServiceServer {
     return $mixed;
   }
 
+  /** \brief decides which formats to include in result and how the should be build
+   *
+   */
   private function set_format($objectFormat, $open_format, $solr_format) {
     if (is_array($objectFormat))
       $help = $objectFormat;
@@ -855,7 +915,7 @@ class openSearch extends webServiceServer {
     return $ret;
   }
 
-  /** \brief
+  /** \brief Fetch holding from extern web service
    *
    */
   private function get_holdings($pid) {
@@ -949,7 +1009,7 @@ class openSearch extends webServiceServer {
     $this->watch->stop('format_solr');
   }
 
-  /** \brief
+  /** \brief Setup call to OpenFormat and execute the format request
    *
    */
   private function format_records(&$collections, $format) {
@@ -987,7 +1047,7 @@ class openSearch extends webServiceServer {
     $this->watch->stop('format');
   }
 
-  /** \brief
+  /** \brief Remove not asked for format from result
    *
    */
   private function remove_unselected_formats(&$collections, &$format) {
@@ -1001,7 +1061,7 @@ class openSearch extends webServiceServer {
     }
   }
 
-  /** \brief
+  /** \brief Check whether an object i deleted or not
    *
    */
   private function deleted_object($fpid) {
@@ -1020,14 +1080,14 @@ class openSearch extends webServiceServer {
     return $state == 'D';
   }
 
-  /** \brief
+  /** \brief Fetch a raw record from fedora
    *
    */
   private function get_fedora_raw($fpid, &$fedora_rec) {
     return self::get_fedora($this->repository['fedora_get_raw'], $fpid, $fedora_rec);
   }
 
-  /** \brief
+  /** \brief Fetch a rels_addi record from fedora
    *
    */
   private function get_fedora_rels_addi($fpid, &$fedora_rel) {
@@ -1039,14 +1099,14 @@ class openSearch extends webServiceServer {
     }
   }
 
-  /** \brief
+  /** \brief Fetch a rels_hierarchy record from fedora
    *
    */
   private function get_fedora_rels_hierarchy($fpid, &$fedora_rel) {
     return self::get_fedora($this->repository['fedora_get_rels_hierarchy'], $fpid, $fedora_rel);
   }
 
-  /** \brief
+  /** \brief Setup call to fedora and execute it
    *
    */
   private function get_fedora($uri, $fpid, &$rec, $mandatory=TRUE) {
@@ -1160,6 +1220,9 @@ class openSearch extends webServiceServer {
     }
   }
 
+  /** \brief Fetch agency types from OpenAgency, cache the result, and return agency type for $agency
+   *
+   */
   private function get_agency_type($agency) {
     static $agency_type_tab;
     if (!isset($agency_type_tab)) {
@@ -1175,11 +1238,17 @@ class openSearch extends webServiceServer {
     return FALSE;
   }
 
+  /** \brief Extract source part of an ID
+   *
+   */
   private function record_source_from_pid($id) {
     list($ret, $dummy) = explode(':', $id, 2);
     return $ret;
   }
 
+  /** \brief Split a record source
+   *
+   */
   private function split_record_source($record_source) {
     return explode('-', $record_source, 2);
   }
@@ -1201,6 +1270,9 @@ class openSearch extends webServiceServer {
     }
   }
 
+  /** \brief Get info for OpenAgency cache style/setup
+   *
+   */
   private function get_agency_cache_info() {
     if (!($ret['host'] = $this->config->get_value('agency_cache_host', 'setup')))
       $ret['host'] = $this->config->get_value('cache_host', 'setup');
@@ -1249,6 +1321,7 @@ class openSearch extends webServiceServer {
                     '&rows=' . $rows . $sort . $rank . $boost . $facets . 
                     ($debug ? '&debugQuery=on' : '') . 
                     '&fl=unit.id' . 
+                    ($this->use_field_collapsing ? '&group=true&group.field=fedoraPid&group.ngroups=true&group.facet=true' : '') . 
                     '&defType=edismax&wt=phps';
 
     //echo $solr_query;
@@ -1578,8 +1651,9 @@ class openSearch extends webServiceServer {
 //              }
             }
           }
-          else
+          else {
             verbose::log(FATAL, 'No dkabm record found in ' . $rec_id);
+          }
           break;
   
         case 'marcxchange':
@@ -1612,6 +1686,9 @@ class openSearch extends webServiceServer {
     return $ret;
   }
 
+  /** \brief Handle non-standarzied characters - one day maybe, this code can be deleted
+   *
+   */
   private function normalize_chars($s) {
     $from[] = "\xEA\x9C\xB2"; $to[] = 'Aa';
     $from[] = "\xEA\x9C\xB3"; $to[] = 'aa';
@@ -1630,9 +1707,9 @@ class openSearch extends webServiceServer {
   *   - frequence
   *   - term
   */
-  private function parse_for_facets(&$facets) {
-    if ($facets['facet_fields']) {
-      foreach ($facets['facet_fields'] as $facet_name => $facet_field) {
+  private function parse_for_facets(&$solr_arr) {
+    if (is_array($solr_arr['facet_counts']['facet_fields'])) {
+      foreach ($solr_arr['facet_counts']['facet_fields'] as $facet_name => $facet_field) {
         $facet->facetName->_value = $facet_name;
         foreach ($facet_field as $term => $freq) {
           if ($term && $freq) {
