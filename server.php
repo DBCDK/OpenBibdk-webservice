@@ -37,7 +37,7 @@ class openSearch extends webServiceServer {
   protected $query_language = 'cqleng'; 
   protected $number_of_fedora_calls = 0;
   protected $number_of_fedora_cached = 0;
-  protected $use_field_collapsing = 'fedoraPid';  // set to FALSE to drop fieldCollapsing
+  protected $collapsing_field = FALSE;  // if used, defined in ini-file
   protected $separate_field_query_style = TRUE; // seach as field:(a OR b) ie FALSE or (field:a OR field:b) ie TRUE
   protected $valid_relation = array(); 
   protected $valid_source = array(); 
@@ -60,9 +60,9 @@ class openSearch extends webServiceServer {
     define('OR_OP', 'OR');
   }
 
-  /**
-      \brief Handles the request and set up the response
-  */
+  /** \brief Entry search: Handles the request and set up the response
+   *
+   */
 
   public function search($param) {
     // set some defines
@@ -77,12 +77,6 @@ class openSearch extends webServiceServer {
 
     // check for unsupported stuff
     $ret_error->searchResponse->_value->error->_value = &$unsupported;
-    if ($param->format->_value == 'short') {
-      $unsupported = 'Error: format short is not supported';
-    }
-    if ($param->format->_value == 'full') {
-      $unsupported = 'Error: format full is not supported';
-    }
     if (empty($param->query->_value)) {
       $unsupported = 'Error: No query found in request';
     }
@@ -120,40 +114,16 @@ class openSearch extends webServiceServer {
     if ($unsupported) return $ret_error;
     $filter_agency = self::set_solr_filter($this->search_profile);
 
+    if ($ufc = $this->config->get_value('collapsing_field', 'setup')) {
+      $this->collapsing_field = $ufc;
+    }
     $use_work_collection = ($param->collectionType->_value <> 'manifestation');
-    if (($rr = $param->userDefinedRanking) || ($rr = $param->userDefinedBoost->_value->userDefinedRanking)) {
-      $rank = 'rank';
-      $rank_user['tie'] = $rr->_value->tieValue->_value;
 
-      if (is_array($rr->_value->rankField)) {
-        foreach ($rr->_value->rankField as $rf) {
-          $boost_type = ($rf->_value->fieldType->_value == 'word' ? 'word_boost' : 'phrase_boost');
-          $rank_user[$boost_type][$rf->_value->fieldName->_value] = $rf->_value->weight->_value;
-          $rank .= '_' . $boost_type . '-' . $rf->_value->fieldName->_value . '-' . $rf->_value->weight->_value;
-        }
-      }
-      else {
-        $boost_type = ($rr->_value->rankField->_value->fieldType->_value == 'word' ? 'word_boost' : 'phrase_boost');
-        $rank_user[$boost_type][$rr->_value->rankField->_value->fieldName->_value] = $rr->_value->rankField->_value->weight->_value;
-        $rank .= '_' . $boost_type . '-' . $rr->_value->rankField->_value->fieldName->_value . '-' . $rr->_value->rankField->_value->weight->_value;
-      }
-      // make sure anyIndexes will be part of the dismax-search
-      if (empty($rank_user['word_boost']['cql.anyIndexes'])) $rank_user['word_boost']['cql.anyIndexes'] = 1;
-      if (empty($rank_user['phrase_boost']['cql.anyIndexes'])) $rank_user['phrase_boost']['cql.anyIndexes'] = 1;
-      $rank_type[$rank] = $rank_user;
+    if ($unsupported = self::parse_for_ranking($param, $rank, $rank_types)) {
+      return $ret_error;
     }
-    elseif ($sort = $param->sort->_value) {
-      $sort_type = $this->config->get_value('sort', 'setup');
-      if (!isset($sort_type[$sort])) $unsupported = 'Error: Unknown sort: ' . $sort;
-    }
-    elseif (($rank = $param->rank->_value) || ($rank = $param->userDefinedBoost->_value->rank->_value)) {
-      $rank_type = $this->config->get_value('rank', 'setup');
-      if (!isset($rank_type[$rank])) $unsupported = 'Error: Unknown rank: ' . $rank;
-    }
-
-    if (($boost_str = self::boostUrl($param->userDefinedBoost->_value->boostField)) && empty($rank)) {
-      $rank_type = $this->config->get_value('rank', 'setup');
-      $rank = 'rank_none';
+    if ($unsupported = self::parse_for_sorting($param, $sort, $sort_types)) {
+      return $ret_error;
     }
 
     $format = self::set_format($param->objectFormat, $this->config->get_value('open_format', 'setup'), $this->config->get_value('solr_format', 'setup'));
@@ -183,7 +153,7 @@ class openSearch extends webServiceServer {
       $start = 1;
     }
     $step_value = min($param->stepValue->_value, MAX_COLLECTIONS);
-    $use_work_collection |= $sort_type[$sort] == 'random';
+    $use_work_collection |= $sort_types[$sort] == 'random';
     $key_work_struct = md5($param->query->_value . $repository_name . $filter_agency .
                               $use_work_collection .  $sort . $rank . $boost_str . $this->version);
 
@@ -200,6 +170,11 @@ class openSearch extends webServiceServer {
       $error = 'Error: No query found in request';
       return $ret_error;
     }
+
+    if ($filter_agency) {
+      $filter_q = rawurlencode($filter_agency);
+    }
+
     if ($this->query_language == 'bestMatch') {
       $sort_q .= '&mm=1';
       foreach ($solr_query['best_match'] as $key => $val) {
@@ -208,17 +183,21 @@ class openSearch extends webServiceServer {
       }
     }
     elseif ($sort) {
-      $sort_q = '&sort=' . urlencode($sort_type[$sort]);
+      $sort_q = '&sort=' . urlencode($sort_types[$sort]);
     }
-    if ($rank_type[$rank]) {
-      $rank_qf = $this->cql2solr->make_boost($rank_type[$rank]['word_boost']);
-      $rank_pf = $this->cql2solr->make_boost($rank_type[$rank]['phrase_boost']);
-      $rank_tie = $rank_type[$rank]['tie'];
+    if ($rank == 'rank_frequency') {
+      if ($new_rank = self::guess_rank($solr_query, $rank_types[$rank], $filter_q)) {
+        $rank = $new_rank;
+      }
+      else {
+        $rank = 'rank_none';
+      }
+    }
+    if ($rank_types[$rank]) {
+      $rank_qf = $this->cql2solr->make_boost($rank_types[$rank]['word_boost']);
+      $rank_pf = $this->cql2solr->make_boost($rank_types[$rank]['phrase_boost']);
+      $rank_tie = $rank_types[$rank]['tie'];
       $rank_q = '&qf=' . urlencode($rank_qf) .  '&pf=' . urlencode($rank_pf) .  '&tie=' . $rank_tie;
-    }
-
-    if ($filter_agency) {
-      $filter_q = rawurlencode($filter_agency);
     }
 
     $rows = ($start + $step_value + 100) * 2;
@@ -551,8 +530,8 @@ class openSearch extends webServiceServer {
         }
         if ($debug_query) {
           unset($explain);
-          if ($this->use_field_collapsing) {
-            foreach ($solr_arr['grouped'][$this->use_field_collapsing]['groups'] as $solr_idx => $solr_grp) {
+          if ($this->collapsing_field) {
+            foreach ($solr_arr['grouped'][$this->collapsing_field]['groups'] as $solr_idx => $solr_grp) {
               if ($fpid == $solr_grp['groupValue']) {
                 $explain = $solr_arr['debug']['explain'][$fpid];
                 break;
@@ -650,6 +629,7 @@ class openSearch extends webServiceServer {
     $result->hitCount->_value = $numFound;
     $result->collectionCount->_value = count($collections);
     $result->more->_value = ($more ? 'true' : 'false');
+    $result->rankUsed->_value = $new_rank;
     $result->searchResult = $collections;
     $result->facetResult->_value = $facets;
     $result->queryDebugResult->_value = $debug_result;
@@ -666,7 +646,7 @@ class openSearch extends webServiceServer {
   }
 
 
-  /** \brief Get an object in a specific format
+  /** \brief Entry getObject: Get an object in a specific format
   *
   * param: agency: 
   *        profile:
@@ -818,12 +798,81 @@ class openSearch extends webServiceServer {
 
   /*******************************************************************************/
 
+  /** \brief parse input for rank parameters
+   *
+   */
+  private function parse_for_ranking($param, &$rank, &$rank_types) {
+    if (($rr = $param->userDefinedRanking) || ($rr = $param->userDefinedBoost->_value->userDefinedRanking)) {
+      $rank = 'rank';
+      $rank_user['tie'] = $rr->_value->tieValue->_value;
+
+      if (is_array($rr->_value->rankField)) {
+        foreach ($rr->_value->rankField as $rf) {
+          $boost_type = ($rf->_value->fieldType->_value == 'word' ? 'word_boost' : 'phrase_boost');
+          $rank_user[$boost_type][$rf->_value->fieldName->_value] = $rf->_value->weight->_value;
+          $rank .= '_' . $boost_type . '-' . $rf->_value->fieldName->_value . '-' . $rf->_value->weight->_value;
+        }
+      }
+      else {
+        $boost_type = ($rr->_value->rankField->_value->fieldType->_value == 'word' ? 'word_boost' : 'phrase_boost');
+        $rank_user[$boost_type][$rr->_value->rankField->_value->fieldName->_value] = $rr->_value->rankField->_value->weight->_value;
+        $rank .= '_' . $boost_type . '-' . $rr->_value->rankField->_value->fieldName->_value . '-' . $rr->_value->rankField->_value->weight->_value;
+      }
+      // make sure anyIndexes will be part of the dismax-search
+      if (empty($rank_user['word_boost']['cql.anyIndexes'])) $rank_user['word_boost']['cql.anyIndexes'] = 1;
+      if (empty($rank_user['phrase_boost']['cql.anyIndexes'])) $rank_user['phrase_boost']['cql.anyIndexes'] = 1;
+      $rank_types[$rank] = $rank_user;
+    }
+    elseif (($rank = $param->rank->_value) || ($rank = $param->userDefinedBoost->_value->rank->_value)) {
+      $rank_types = $this->config->get_value('rank', 'setup');
+    }
+    elseif (($boost_str = self::boostUrl($param->userDefinedBoost->_value->boostField)) && empty($rank)) {
+      $rank_types = $this->config->get_value('rank', 'setup');
+      $rank = 'rank_none';
+    }
+    if ($rank && !isset($rank_types[$rank])) {
+      return 'Error: Unknown rank: ' . $rank;
+    }
+  }
+
+  /** \brief 
+   *
+   */
+  private function guess_rank($solr_query, $guesses, $filter) {
+    $freqs = self::get_register_freqency($solr_query['edismax'], array_keys($guesses), $filter);
+    $max = -1;
+    $idx = 0;
+    foreach ($guesses as $rank) {
+      $debug_str .= $rank . '(' . $freqs[$idx] . ') ';
+      if ($freqs[$idx] > $max) {
+        $ret = $rank;
+        $max = $freqs[$idx];
+      }
+      $idx++;
+    }
+    verbose::log(DEBUG, 'Rank frequency: ' . $ret . ' from: ' . $debug_str);
+    return $ret;
+
+  }
+
+  /** \brief parse input for sort parameters
+   *
+   */
+  private function parse_for_sorting($param, &$sort, &$sort_types) {
+    if ($sort = $param->sort->_value) {
+      $sort_types = $this->config->get_value('sort', 'setup');
+      if (!isset($sort_types[$sort])) {
+        return 'Error: Unknown sort: ' . $sort;
+      }
+    }
+  }
+
   /** \brief Encapsules how to get the data from the first element
    *
    */
   private function get_first_solr_element($solr_arr, $element) {
-    if ($this->use_field_collapsing) {
-      $solr_docs = &$solr_arr['grouped'][$this->use_field_collapsing]['groups'][0]['doclist']['docs'];
+    if ($this->collapsing_field) {
+      $solr_docs = &$solr_arr['grouped'][$this->collapsing_field]['groups'][0]['doclist']['docs'];
     }
     else {
       $solr_docs = &$solr_arr['response']['docs'];
@@ -835,13 +884,21 @@ class openSearch extends webServiceServer {
    *
    */
   private function get_num_found($solr_arr) {
-    if ($this->use_field_collapsing) {
-      return $solr_arr['grouped'][$this->use_field_collapsing]['ngroups'];
+    if ($this->collapsing_field) {
+      return self::get_num_grouped($solr_arr);
     }
     else {
-      return $solr_arr['response']['numFound'];
+      return self::get_num_response($solr_arr);
     }
   }
+
+  private function get_num_grouped($solr_arr) {
+    return $solr_arr['grouped'][$this->collapsing_field]['ngroups'];
+  } 
+
+  private function get_num_response($solr_arr) {
+    return $solr_arr['response']['numFound'];
+  } 
 
   /** \brief Encapsules extraction of unit.id's from the solr result
    *
@@ -849,8 +906,8 @@ class openSearch extends webServiceServer {
   private function extract_unit_id_from_solr($solr_arr, &$search_ids) {
     static $u_err = 0;
     $search_ids = array();
-    if ($this->use_field_collapsing) {
-      $solr_groups = &$solr_arr['grouped'][$this->use_field_collapsing]['groups'];
+    if ($this->collapsing_field) {
+      $solr_groups = &$solr_arr['grouped'][$this->collapsing_field]['groups'];
       foreach ($solr_groups as &$gdoc) {
         if ($uid = $gdoc['doclist']['docs'][0]['unit.id']) {
           $search_ids[] = self::scalar_or_first_elem($uid);
@@ -1314,27 +1371,69 @@ class openSearch extends webServiceServer {
    *
    */
   private function get_solr_array($q, $start, $rows, $sort, $rank, $facets, $filter, $boost, $debug, &$solr_arr) {
-    $solr_query = $this->repository['solr'] . 
-                    '?q=' . urlencode($q) . 
-                    '&fq=' . $filter . 
-                    '&start=' . $start . 
-                    '&rows=' . $rows . $sort . $rank . $boost . $facets . 
-                    ($debug ? '&debugQuery=on' : '') . 
-                    '&fl=unit.id' . 
-                    ($this->use_field_collapsing ? '&group=true&group.field=fedoraPid&group.ngroups=true&group.facet=true' : '') . 
-                    '&defType=edismax&wt=phps';
+    $solr_urls[0] = self::create_solr_url($q, $start, $rows, $sort, $rank, $facets, $filter, $boost, $debug, $this->collapsing_field);
+    return self::do_solr($solr_urls, $solr_arr);
+  }
 
-    //echo $solr_query;
-    //exit;
+  /** \brief fetch hit count for each register in a given list
+   *
+   */
+  private function get_register_freqency($q, $registers, $filter) {
+    foreach ($registers as $reg_name => $reg_value) {
+      $solr_urls[]['url'] = $this->repository['solr'] .  
+                            '?q=' . $reg_value . ':(' . urlencode($q) .  ')&fq=' . $filter .  '&start=1&rows=0&wt=phps';
+      $ret[$reg_name] = 0;
+    }
+    $err = self::do_solr($solr_urls, $solr_arr);
+    $n = 0;
+    foreach ($registers as $reg_name => $reg_value) {
+      $ret[$reg_name] = self::get_num_response($solr_arr[$n++]);
+    }
+    return $ret;
+  }
 
-    verbose::log(TRACE, 'Query: ' . $solr_query);
-    verbose::log(DEBUG, 'Query: ' . $this->repository['solr'] . "?q=" . urlencode($q) . "&fq=$filter&start=$start&rows=1$sort$boost&fl=fedoraPid,unit.id$facets&defType=edismax&debugQuery=on");
-    $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: text/plain; charset=utf-8'));
-    $solr_result = $this->curl->get($solr_query);
-    if (empty($solr_result))
+  /** \brief build a solr url from a variety of parameters (and an url for debugging)
+   *
+   */
+  private function create_solr_url($q, $start, $rows, $sort, $rank, $facets, $filter, $boost, $debug, $collapsing) {
+    if ($collapsing) {
+      $collaps_pars = '&group=true&group.ngroups=true&group.facet=true&group.field=' . $collapsing;
+    }
+    $url = $this->repository['solr'] .
+                    '?q=' . urlencode($q) .
+                    '&fq=' . $filter .
+                    '&start=' . $start .  $sort . $rank . $boost . $facets .  $collaps_pars .
+                    '&defType=edismax';
+    $debug_url = $url . '&fl=fedoraPid,unit.id&rows=1&debugQuery=on';
+    $url .= '&fl=unit.id&wt=phps&rows=' . $rows . ($debug ? '&debugQuery=on' : '');
+
+    return array('url' => $url, 'debug' => $debug_url);
+  }
+
+  /** \brief send one or more requests to Solr
+   *
+   */
+  private function do_solr($urls, &$solr_arr) {
+    foreach ($urls as $no => $url) {
+      verbose::log(TRACE, 'Query: ' . $url['url']);
+      verbose::log(DEBUG, 'Query: ' . $url['debug']);
+      $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: text/plain; charset=utf-8'), $no);
+      $this->curl->set_url($url['url'], $no);
+    }
+    $solr_results = $this->curl->get();
+    $this->curl->close();
+    if (empty($solr_results))
       return 'Internal problem: No answer from Solr';
-    if (!$solr_arr = unserialize($solr_result))
+    if (count($urls) > 1) {
+      foreach ($solr_results as &$solr_result) {
+        if (!$solr_arr[] = unserialize($solr_result)) {
+          return 'Internal problem: Cannot decode Solr result';
+        }
+      }
+    }
+    elseif (!$solr_arr = unserialize($solr_results)) {
       return 'Internal problem: Cannot decode Solr result';
+    }
   }
 
   /** \brief Parse a rels-ext record and extract the unit id
