@@ -62,7 +62,11 @@ You should have received a copy of the GNU Affero General Public License along w
 				<xs:element ref="os:source" minOccurs="0"/>
 				<xs:element ref="os:start" minOccurs="0"/>
 				<xs:element ref="os:stepValue" minOccurs="0"/>
-				<xs:element ref="os:sort" minOccurs="0"/>
+			    <xs:choice>
+				    <xs:element ref="os:rank" minOccurs="0"/>
+				    <xs:element ref="os:userDefinedRanking" minOccurs="0"/>
+				    <xs:element ref="os:sort" minOccurs="0"/>
+			    </xs:choice>
 				<xs:element ref="os:queryDebug" minOccurs="0"/>
 				<xs:element ref="os:trackingId" minOccurs="0"/>
 			</xs:sequence>
@@ -428,6 +432,28 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">The query sent to the search engine. Used for query debugging.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
+	<xs:element name="rank" type="os:rankType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Here you can specify the rank order of the search result. Choose from the list in rankType.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="rankField">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Specifying fields to rank by and the corresponding weights</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="os:fieldName"/>
+				<xs:element ref="os:fieldType"/>
+				<xs:element ref="os:weight"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="rankUsed" type="os:rankType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">The actual ranking used</xs:documentation>
+		</xs:annotation>
+	</xs:element>
 	<xs:element name="rawQueryString" type="xs:string">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">The raw query sent to the search engine. Used for query debugging.</xs:documentation>
@@ -497,6 +523,7 @@ You should have received a copy of the GNU Affero General Public License along w
 				<xs:element ref="os:hitCount"/>
 				<xs:element ref="os:collectionCount"/>
 				<xs:element ref="os:more"/>
+				<xs:element ref="os:rankUsed" minOccurs="0"/>
 				<xs:element ref="os:searchResult" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="os:facetResult" minOccurs="0"/>
 				<xs:element ref="os:queryDebugResult" minOccurs="0"/>
@@ -569,6 +596,17 @@ You should have received a copy of the GNU Affero General Public License along w
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Number of seconds used in the service</xs:documentation>
 		</xs:annotation>
+	</xs:element>
+	<xs:element name="userDefinedRanking">
+		<xs:annotation>
+			<xs:documentation xml:lang="en"></xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="os:tieValue"/>
+				<xs:element ref="os:rankField" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
 	</xs:element>
 	<xs:element name="userIdAut" type="xs:string">
 		<xs:annotation>
@@ -693,6 +731,18 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:enumeration value="type"/>
 			<xs:enumeration value="uri"/>
 			<xs:enumeration value="full"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="rankType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">The rank orders you can choose from.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="rank_frequency"/>
+			<xs:enumeration value="rank_creator"/>
+			<xs:enumeration value="rank_general"/>
+			<xs:enumeration value="rank_none"/>
+			<xs:enumeration value="rank_title"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="relationTypeType">
