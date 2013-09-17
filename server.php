@@ -629,7 +629,9 @@ class openSearch extends webServiceServer {
     $result->hitCount->_value = $numFound;
     $result->collectionCount->_value = count($collections);
     $result->more->_value = ($more ? 'true' : 'false');
-    $result->rankUsed->_value = $new_rank;
+    if (isset($rank)) {
+      $result->rankUsed->_value = $rank;
+    }
     $result->searchResult = $collections;
     $result->facetResult->_value = $facets;
     $result->queryDebugResult->_value = $debug_result;
