@@ -775,6 +775,20 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+            <title lang="en">No English description available</title>
+            <title lang="da">Link til autoritetsbase</title>
+            <map>
+                <name set="dkcclterm">li</name>
+            </map>
+        </index>
+        <index>
+            <title lang="en">No English description available</title>
+            <title lang="da">LET-tal</title>
+            <map>
+                <name set="dkcclterm">ll</name>
+            </map>
+        </index>
+		<index>
 			<title lang="en">No English description available</title>
 			<title lang="da">Biblioteksnumre på katalogiseringskilde</title>
 			<map>
@@ -858,6 +872,13 @@ You should have received a copy of the GNU Affero General Public License along w
 				<name set="dkcclterm">nt</name>
 			</map>
 		</index>
+		<index>
+            <title lang="en">No English description available</title>
+            <title lang="da">Niveaukode for faglitteratur</title>
+            <map>
+                <name set="dkcclterm">nv</name>
+            </map>
+        </index>
 		<index>
 			<title lang="en">No English description available</title>
 			<title lang="da">OCLC control number</title>
@@ -964,6 +985,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+            <title lang="en">No English description available</title>
+            <title lang="da">Tilgængelighed</title>
+            <map>
+                <name set="dkcclterm">tg</name>
+            </map>
+        </index>
+		<index>
 			<title lang="en">No English description available</title>
 			<title lang="da">Titel</title>
 			<map>
@@ -1033,6 +1061,13 @@ You should have received a copy of the GNU Affero General Public License along w
 				<name set="dkcclterm">år</name>
 			</map>
 		</index>
+		<index>
+            <title lang="da">Adgang (facet)</title>
+            <title lang="en">Access (facet)</title>
+            <map>
+                <name set="facet">access</name>
+            </map>
+        </index>
 		<index>
 			<title lang="da">Kilde (facet)</title>
 			<title lang="en">Source (facet)</title>
@@ -1143,6 +1178,13 @@ You should have received a copy of the GNU Affero General Public License along w
             <title lang="en">Readability index (facet)</title>
             <map>
                 <name set="facet">lix</name>
+            </map>
+        </index>
+        <index>
+            <title lang="da">Filmnationalitet (facet)</title>
+            <title lang="en">Nationality of movie (facet)</title>
+            <map>
+                <name set="facet">nationality</name>
             </map>
         </index>
 		<index>
