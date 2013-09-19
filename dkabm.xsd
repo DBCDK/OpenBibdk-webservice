@@ -7,7 +7,7 @@
     </xs:documentation>
 	</xs:annotation>
 	<xs:import namespace="http://oss.dbc.dk/ns/osstypes" schemaLocation="osstypes.xsd"/>
-	<xs:import schemaLocation="dkabm_types.xsd"/>
+	<xs:import namespace="http://biblstandard.dk/abm/namespace/dkabm_types/" schemaLocation="dkabm_types.xsd"/>
 	<xs:import namespace="http://biblstandard.dk/ac/namespace/" schemaLocation="ac.xsd"/>
 	<xs:element name="record" type="elementsAndRefinementsGroup"/>
 	<xs:element name="collection">
