@@ -207,6 +207,14 @@ sort[date_ascending] = sort.date asc
 sort[date_descending] = sort.date desc
 sort[acquisitionDate_ascending] = sort.acquisitionDate asc
 sort[acquisitionDate_descending] = sort.acquisitionDate desc
+
+sort[work_type_ascending] = sort.work_type asc
+sort[work_type_descending] = sort.work_type desc
+sort[record_owner_ascending] = sort.recordOwner asc
+sort[record_owner_descending] = sort.recordOwner desc
+sort[article_date_ascending] = sort.articleDate asc
+sort[article_date_descending] = sort.articleDate desc
+
 sort[random] = random
 
 

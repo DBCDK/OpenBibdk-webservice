@@ -778,11 +778,11 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:enumeration value="acquisitionDate_ascending"/>
 			<xs:enumeration value="acquisitionDate_descending"/>
 			<xs:enumeration value="work_type_ascending"/>
-            <xs:enumeration value="work_type_descending"/>
+			<xs:enumeration value="work_type_descending"/>
 			<xs:enumeration value="record_owner_ascending"/>
-            <xs:enumeration value="record_owner_descending"/>
+			<xs:enumeration value="record_owner_descending"/>
 			<xs:enumeration value="article_date_ascending"/>
-            <xs:enumeration value="article_date_descending"/>
+			<xs:enumeration value="article_date_descending"/>
 			<xs:enumeration value="random"/>
 		</xs:restriction>
 	</xs:simpleType>
