@@ -153,7 +153,7 @@ class openSearch extends webServiceServer {
       $start = 1;
     }
     $step_value = min($param->stepValue->_value, MAX_COLLECTIONS);
-    $use_work_collection |= $sort_types[$sort] == 'random';
+    $use_work_collection |= $sort_types[$sort[0]] == 'random';
     $key_work_struct = md5($param->query->_value . $repository_name . $filter_agency .
                               $use_work_collection .  $sort . $rank . $boost_str . $this->version);
 
@@ -183,7 +183,10 @@ class openSearch extends webServiceServer {
       }
     }
     elseif ($sort) {
-      $sort_q = '&sort=' . urlencode($sort_types[$sort]);
+      foreach ($sort as $s) {
+        $ss[] = urlencode($sort_types[$s]);
+      }
+      $sort_q = '&sort=' . implode(',', $ss);
     }
     if ($rank == 'rank_frequency') {
       if ($new_rank = self::guess_rank($solr_query, $rank_types[$rank], $filter_q)) {
@@ -218,7 +221,7 @@ class openSearch extends webServiceServer {
     $debug_query = $this->xs_boolean($param->queryDebug->_value);
 
     // do the query
-    if ($sort == 'random') {
+    if ($sort[0] == 'random') {
       if ($err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, $filter_q, '', $debug_query, $solr_arr))
         $error = $err;
       else {
@@ -250,7 +253,7 @@ class openSearch extends webServiceServer {
 
     $this->watch->start('Build_id');
     $work_ids = $used_search_fids = array();
-    if ($sort == 'random') {
+    if ($sort[0] == 'random') {
       $rows = min($step_value, $numFound);
       $more = $step_value < $numFound;
       for ($w_idx = 0; $w_idx < $rows; $w_idx++) {
@@ -427,7 +430,8 @@ class openSearch extends webServiceServer {
             }
           }
           $post_query = 'q=' . urlencode($q) .
-                       '&fq=(' . $filter_q . ')+AND+unit.isPrimaryObject:true' .
+                       '&fq=' . $filter_q .
+//                       '&fq=(' . $filter_q . ')+AND+unit.isPrimaryObject:true' .
                        '&wt=phps' .
                        '&start=0' .
                        '&rows=' . '999999' . // $no_of_rows . 
@@ -861,10 +865,24 @@ class openSearch extends webServiceServer {
    *
    */
   private function parse_for_sorting($param, &$sort, &$sort_types) {
-    if ($sort = $param->sort->_value) {
+    if ($param->sort) {
+      $random = FALSE;
+      if (is_array($param->sort)) {
+        $sorts = &$param->sort;
+      }
+      else {
+        $sorts[] = $param->sort;
+      }
       $sort_types = $this->config->get_value('sort', 'setup');
-      if (!isset($sort_types[$sort])) {
-        return 'Error: Unknown sort: ' . $sort;
+      foreach ($sorts as $s) {
+        if (!isset($sort_types[$s->_value])) {
+          return 'Error: Unknown sort: ' . $s->_value;
+        }
+        $random = $random || ($s->_value == 'random');
+        if ($random && count($sort)) {
+          return 'Error: Random sorting can only be used alone';
+        }
+        $sort[] = $s->_value;
       }
     }
   }
