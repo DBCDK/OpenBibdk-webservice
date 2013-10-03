@@ -446,17 +446,16 @@ class openSearch extends webServiceServer {
             echo 'post_array: ' . $this->repository['solr'] . '?' . $post_query . "\n";
           }
 
-          $this->curl->set_post($post_query); // use post here because query can be very long
-          $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded; charset=utf-8'));
+          $this->curl->set_post($post_query, 0); // use post here because query can be very long
+          $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded; charset=utf-8'), 0);
           $this->watch->start('Solr 2');
-          $solr_result = $this->curl->get($this->repository['solr']);
+          $solr_result = $this->curl->get($this->repository['solr'], 0);
           $this->watch->stop('Solr 2');
 // remember to clear POST 
-          $this->curl->set_option(CURLOPT_POST, 0);
+          $this->curl->set_option(CURLOPT_POST, 0, 0);
           if (!($solr_2_arr[$add_idx] = unserialize($solr_result))) {
             verbose::log(FATAL, 'Internal problem: Cannot decode Solr re-search');
             $error = 'Internal problem: Cannot decode Solr re-search';
-//die();
             return $ret_error;
           }
         }
