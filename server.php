@@ -384,7 +384,7 @@ class openSearch extends webServiceServer {
       $add_query[$block_idx] = '';
       $which_rec_id = 'unit.id';
       foreach ($work_ids as $w_no => $w) {
-        if (count($w) > 1 || $format['found_solr_format']) {
+        if (TRUE || count($w) > 1 || $format['found_solr_format']) {
           if ($add_query[$block_idx] && ($no_bool + count($w)) > MAX_QUERY_ELEMENTS) {
             $block_idx++;
             $no_bool = 0;
@@ -402,7 +402,7 @@ class openSearch extends webServiceServer {
           }
         }
       }
-      if (!empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {
+      if (TRUE || !empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {
         foreach ($add_query as $add_idx => $add_q) {
           if ($this->separate_field_query_style) {
               $add_q =  '(' . $add_q . ')';
@@ -436,7 +436,7 @@ class openSearch extends webServiceServer {
                        '&start=0' .
                        '&rows=' . '999999' . // $no_of_rows . 
                        '&defType=edismax' .
-                       '&fl=unit.isPrimaryObject,unit.id,sort.complexKey' . $add_fl;
+                       '&fl=rec.collectionIdentifier,unit.isPrimaryObject,unit.id,sort.complexKey' . $add_fl;
           if ($rank_qf) $post_query .= '&qf=' . $rank_qf;
           if ($rank_pf) $post_query .= '&pf=' . $rank_pf;
           if ($rank_tie) $post_query .= '&tie=' . $rank_tie;
@@ -460,7 +460,7 @@ class openSearch extends webServiceServer {
           }
         }
         foreach ($work_ids as $w_no => $w_list) {
-          if (count($w_list) > 1) {
+          if (count($w_list) > 0) {
             $hit_fid_array = array();
             foreach ($w_list as $w) {
               foreach ($solr_2_arr as $s_2_a) {
@@ -469,6 +469,7 @@ class openSearch extends webServiceServer {
                   if ($p_id == $w) {
                     $hit_fid_array[] = $w;
                     $unit_sort_keys[$w] = $fdoc['sort.complexKey'] . '  ' . $p_id;
+                    $collection_identifier[$w] =  self::scalar_or_first_elem($fdoc['rec.collectionIdentifier']);
                     break 2;
                   }
                 }
@@ -521,7 +522,16 @@ class openSearch extends webServiceServer {
           $sort_holdings = sprintf(' %04d ', 9999 - intval($holds['have']));
         }
         $fpid_sort_keys[$fpid] = str_replace($HOLDINGS, $sort_holdings, $unit_sort_keys[$unit_id]);
-        if ($error = self::get_fedora_raw($fpid, $fedora_result)) {
+// 2DO: Need to get the right record. 
+//    - if rec.collectionIdentifier startes with 7 - get dataStream: localData.<rec.collectionIdentifier>
+//    - else get dataStream: commonData
+        if ($collection_identifier[$unit_id] && (substr($collection_identifier[$unit_id], 0, 1) == '7')) {
+          $data_stream = 'localData.' . $collection_identifier[$unit_id];
+        }
+        else {
+          $data_stream = 'commonData';
+        }
+        if ($error = self::get_fedora_raw($fpid, $fedora_result, $data_stream)) {
 // fetch empty record from ini-file and use instead of error
           if ($missing_record) {
             $error = NULL;
@@ -1174,8 +1184,8 @@ class openSearch extends webServiceServer {
   /** \brief Fetch a raw record from fedora
    *
    */
-  private function get_fedora_raw($fpid, &$fedora_rec) {
-    return self::get_fedora($this->repository['fedora_get_raw'], $fpid, $fedora_rec);
+  private function get_fedora_raw($fpid, &$fedora_rec,  $datastream_id = 'commonData') {
+    return self::get_fedora(str_replace('commonData', $datastream_id, $this->repository['fedora_get_raw']), $fpid, $fedora_rec);
   }
 
   /** \brief Fetch a rels_addi record from fedora
