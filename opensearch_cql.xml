@@ -1328,6 +1328,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+                        <title lang="da">Accessionsdato (enkeltord)</title>
+                        <title lang="en">Acquisition date (term)</title>
+                        <map>
+                                <name set="term">acquisitionDate</name>
+                        </map>
+                </index>
+		<index>
 			<title lang="da">Målgruppe (enkeltord)</title>
 			<title lang="en">Audience (term)</title>
 			<map>
