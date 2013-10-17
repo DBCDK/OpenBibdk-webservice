@@ -249,7 +249,7 @@ class openSearch extends webServiceServer {
       $debug_result->parsedQuery->_value = $solr_arr['debug']['parsedquery'];
       $debug_result->parsedQueryString->_value = $solr_arr['debug']['parsedquery_toString'];
     }
-    $facets = self::parse_for_facets($solr_arr);
+    //$facets = self::parse_for_facets($solr_arr);
 
     $this->watch->start('Build_id');
     $work_ids = $used_search_fids = array();
@@ -605,11 +605,26 @@ class openSearch extends webServiceServer {
     }
 
 // try to get a better hitCount by looking for primaryObjects only 
-// ignore errors here
-    $err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', '', '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr);
-    if ($n = self::get_num_found($solr_arr)) {
-      verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $n);
-      $numFound = $n;
+// 2DO: fetching facets should be moved here - to correct the hitcount on them as well
+    $nfcl = $this->config->get_value('num_found_collaps_limit', 'setup');
+    if ($nfcl >= $numFound) {
+      if ($nfcf = $this->config->get_value('num_found_collapsing_field', 'setup')) {
+        $this->collapsing_field = $nfcf;
+      }
+    }
+    $this->watch->start('Solr 3');
+    if ($err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr)) {
+      $this->watch->stop('Solr 3');
+      $error = $err;
+      return $ret_error;
+    }
+    else {
+      $this->watch->stop('Solr 3');
+      if ($n = self::get_num_found($solr_arr)) {
+        verbose::log(STAT, 'Modify hitcount from: ' . $numFound . ' to ' . $n);
+        $numFound = $n;
+      }
+      $facets = self::parse_for_facets($solr_arr);
     }
 /*
 */

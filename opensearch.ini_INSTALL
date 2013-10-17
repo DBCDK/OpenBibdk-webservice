@@ -111,6 +111,13 @@ open_format[ris][format] = ris
 ;solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,rec.id,fedora.identifier,display.language,display.partOf,display.title,display.type,display.workType
 solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,fedora.identifier,display.language,display.partOf,display.title,display.dependentTitle,display.type,display.workType
 
+; if solr's field collapsing should be used, define the collapsing field here
+; performs poorly on large sets
+; collapsing_field = fedoraPid
+
+; Use collapsing field for modyfying hit count when prelimary hit count is below hit_count_collaps_limit
+num_found_collaps_limit = 5000
+num_found_collapsing_field = fedoraPid
 
 
 ; default search_profile setting
