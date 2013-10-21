@@ -41,6 +41,7 @@ class openSearch extends webServiceServer {
   protected $separate_field_query_style = TRUE; // seach as field:(a OR b) ie FALSE or (field:a OR field:b) ie TRUE
   protected $valid_relation = array(); 
   protected $valid_source = array(); 
+  protected $rank_frequence_debug;
 
 
   public function __construct() {
@@ -248,6 +249,9 @@ class openSearch extends webServiceServer {
       $debug_result->queryString->_value = $solr_arr['debug']['querystring'];
       $debug_result->parsedQuery->_value = $solr_arr['debug']['parsedquery'];
       $debug_result->parsedQueryString->_value = $solr_arr['debug']['parsedquery_toString'];
+      if ($this->rank_frequence_debug) {
+        $debug_result->rankFrequency->_value = $this->rank_frequence_debug;
+      }
     }
     //$facets = self::parse_for_facets($solr_arr);
 
@@ -725,8 +729,8 @@ class openSearch extends webServiceServer {
     }
 
     $format = self::set_format($param->objectFormat, 
-                                $this->config->get_value('open_format', 'setup'), 
-                                $this->config->get_value('solr_format', 'setup'));
+                               $this->config->get_value('open_format', 'setup'), 
+                               $this->config->get_value('solr_format', 'setup'));
     $this->cache = new cache($this->config->get_value('cache_host', 'setup'),
                              $this->config->get_value('cache_port', 'setup'),
                              $this->config->get_value('cache_expire', 'setup'));
@@ -768,15 +772,16 @@ class openSearch extends webServiceServer {
       if ($rec_error) {
         $o->collection->_value->object[]->_value->error->_value = $rec_error;
         unset($rec_error);
-      } else {
+      } 
+      else {
         $o->collection->_value->object[]->_value =
           self::parse_fedora_object($fedora_result,
-                                     $fedora_addi_relation,
-                                     $param->relationData->_value,
-                                     $fpid->_value,
-                                     $filter_agency,
-                                     $format,
-                                     $no_of_holdings);
+                                    $fedora_addi_relation,
+                                    $param->relationData->_value,
+                                    $fpid->_value,
+                                    $filter_agency,
+                                    $format,
+                                    $no_of_holdings);
       }
       $collections[]->_value = $o;
       unset($o);
@@ -872,7 +877,8 @@ class openSearch extends webServiceServer {
     $freqs = self::get_register_freqency($solr_query['edismax'], array_keys($guesses), $filter);
     $max = -1;
     $idx = 0;
-    foreach ($guesses as $rank) {
+    foreach ($guesses as $reg => $rank) {
+      $this->rank_frequence_debug->$reg->_value = $freqs[$idx];
       $debug_str .= $rank . '(' . $freqs[$idx] . ') ';
       if ($freqs[$idx] > $max) {
         $ret = $rank;
