@@ -428,7 +428,7 @@ class openSearch extends webServiceServer {
           $q = $chk_query['edismax'];
           if ($format['found_solr_format']) {
             foreach ($format as $f) {
-              if ($f[is_solr_format]) {
+              if ($f['is_solr_format']) {
                 $add_fl .= ',' . $f['format_name'];
               }
             }
@@ -529,12 +529,7 @@ class openSearch extends webServiceServer {
 // 2DO: Need to get the right record. 
 //    - if rec.collectionIdentifier startes with 7 - get dataStream: localData.<rec.collectionIdentifier>
 //    - else get dataStream: commonData
-        if ($collection_identifier[$unit_id] && (substr($collection_identifier[$unit_id], 0, 1) == '7')) {
-          $data_stream = 'localData.' . $collection_identifier[$unit_id];
-        }
-        else {
-          $data_stream = 'commonData';
-        }
+        $data_stream = self::set_data_stream($collection_identifier[$unit_id]);
         if ($error = self::get_fedora_raw($fpid, $fedora_result, $data_stream)) {
 // fetch empty record from ini-file and use instead of error
           if ($missing_record) {
@@ -727,6 +722,9 @@ class openSearch extends webServiceServer {
         return $ret_error;
       }
     }
+    if ($filter_agency) {
+      $filter_q = rawurlencode($filter_agency);
+    }
 
     $format = self::set_format($param->objectFormat, 
                                $this->config->get_value('open_format', 'setup'), 
@@ -741,11 +739,49 @@ class openSearch extends webServiceServer {
     else {
       $fpids = array($param->identifier);
     }
+    if ($format['found_solr_format']) {
+      foreach ($format as $f) {
+        if ($f['is_solr_format']) {
+          $add_fl .= ',' . $f['format_name'];
+        }
+      }
+    }
     foreach ($fpids as $fpid_number => $fpid) {
+      $id_array[] = $fpid->_value;
+    }
+    $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config);
+    $chk_query = $this->cql2solr->cql_2_edismax('rec.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
+    $solr_q = $this->repository['solr'] .
+              '?wt=phps' .
+              '&q=' . urlencode($chk_query['edismax']) .
+              '&fq=' . $filter_q .
+              '&start=0' .
+              '&rows=50000' .
+              '&defType=edismax' .
+              '&fl=rec.collectionIdentifier,fedoraPid,rec.id,unit.id' . $add_fl;
+    $solr_result = $this->curl->get($solr_q);
+    $solr_2_arr[] = unserialize($solr_result);
+
+    foreach ($fpids as $fpid_number => $fpid) {
+      foreach ($solr_2_arr as $s_2_a) {
+        foreach ($s_2_a['response']['docs'] as $fdoc) {
+          $p_id =  self::scalar_or_first_elem($fdoc['fedoraPid']);
+          if ($p_id == $fpid->_value) {
+            $collection_identifier =  self::scalar_or_first_elem($fdoc['rec.collectionIdentifier']);
+            break 2;
+          }
+        }
+      }
+      $data_stream = self::set_data_stream($collection_identifier);
+//var_dump($filter_q);
+//var_dump($solr_2_arr);
+//var_dump($collection_identifier);
+//var_dump($data_stream); die();
+      
       if (self::deleted_object($fpid->_value)) {
         $rec_error = 'Error: deleted record: ' . $fpid->_value;
       }
-      elseif ($error = self::get_fedora_raw($fpid->_value, $fedora_result)) {
+      elseif ($error = self::get_fedora_raw($fpid->_value, $fedora_result, $data_stream)) {
         $rec_error = 'Error: unknown/missing record: ' . $fpid->_value;
       }
       elseif ($param->relationData->_value || 
@@ -794,8 +830,9 @@ class openSearch extends webServiceServer {
       self::format_records($collections, $format);
     }
     if ($format['found_solr_format']) {
+/*
       foreach ($format as $f) {
-        if ($f[is_solr_format]) {
+        if ($f['is_solr_format']) {
           $add_fl .= ',' . $f['format_name'];
         }
       }
@@ -809,6 +846,7 @@ class openSearch extends webServiceServer {
                 '&fl=unit.id' . $add_fl;
       $solr_result = $this->curl->get($solr_q);
       $solr_2_arr[] = unserialize($solr_result);
+*/
       self::format_solr($collections, $format, $solr_2_arr, $work_ids);
     }
     self::remove_unselected_formats($collections, $format);
@@ -832,6 +870,18 @@ class openSearch extends webServiceServer {
   }
 
   /*******************************************************************************/
+
+  /** \brief return data stream name depending on collection identifier
+   *
+   */
+  private function set_data_stream($col_id) {
+    if ($col_id && (substr($col_id, 0, 1) == '7')) {
+      return 'localData.' . $col_id;
+    }
+    else {
+      return 'commonData';
+    }
+  }
 
   /** \brief parse input for rank parameters
    *
