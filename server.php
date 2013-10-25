@@ -156,7 +156,7 @@ class openSearch extends webServiceServer {
     $step_value = min($param->stepValue->_value, MAX_COLLECTIONS);
     $use_work_collection |= $sort_types[$sort[0]] == 'random';
     $key_work_struct = md5($param->query->_value . $repository_name . $filter_agency .
-                              $use_work_collection .  $sort . $rank . $boost_str . $this->version);
+                              $use_work_collection .  implode('', $sort) . $rank . $boost_str . $this->version);
 
     if ($param->queryLanguage->_value) {
       $this->query_language = $param->queryLanguage->_value;
@@ -945,6 +945,9 @@ class openSearch extends webServiceServer {
    *
    */
   private function parse_for_sorting($param, &$sort, &$sort_types) {
+    if (!is_array($sort)) {
+      $sort = array();
+    }
     if ($param->sort) {
       $random = FALSE;
       if (is_array($param->sort)) {
