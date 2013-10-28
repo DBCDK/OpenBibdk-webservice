@@ -61,19 +61,28 @@ missing_record = <?xml version='1.0' encoding='UTF-8'?><ting:container xmlns:tin
 ; default repository
 default_repository = @REPOSITORY_NAME@
 
+; define fedora parameters for get_raw, get_rels_hierarchy, get_rels_addi, get_object_profile and get_datastream
+; - get_raw: parameters to get raw record from fedora - commonData stream
+; - get_rels_hierarchy: parameters to get work-/unit-structure relations from fedora - RELS-SYS stream
+; - get_rels_addi: parameters to get addi relation datastream - RELS-EXT stream
+; - get_object_profile: parameters to get object state/profile from fedora - if not set, deleted records will be returned
+; - get_datastreams: parameters to get datastreams for an object
+fedora[get_raw] = %s/datastreams/commonData/content
+fedora[get_rels_hierarchy] = %s/datastreams/RELS-SYS/content
+fedora[get_rels_addi] = %s/datastreams/RELS-EXT/content
+fedora[get_object_profile] = %s?format=xml
+fedora[get_datastreams] = %s/datastreams?format=xml
+
 ; url to solr and fedorainterface
-; set url's for fedora_get_raw, fedora_get_rels_hierarchy and fedora_get_object_profile
 ; - solr: url to solr-server
-; - fedora_get_raw: url to get raw record from fedora - commonData stream
-; - fedora_get_rels_hierarchy: url to get work-/unit-structure relations from fedora - RELS-SYS stream
-; - fedora_get_rels_addi: url to get addi relation datastream - RELS-EXT stream
-; - fedora_get_object_profile: url to get object state/profile from fedora - if not set, deleted records will be returned
+; - fedora: url to fedora
+; The fedora structure above, will set the repository parameters appending each function to "fedora_" giving
+; fedora_get_raw, fedora_get_rels... 
+; If one or more of these does not follow the "normal" parameter, they can be set directly below like
+; repository[my_repository][fedora_get_datastreams] = special/%s/parameter?format=...
 
 repository[@REPOSITORY_NAME@][solr] = @SOLR@
-repository[@REPOSITORY_NAME@][fedora_get_raw] = @FEDORA_GET_RAW@
-repository[@REPOSITORY_NAME@][fedora_get_rels_hierarchy] = @FEDORA_GET_RELS_HIERARCHY@
-repository[@REPOSITORY_NAME@][fedora_get_rels_addi] = @FEDORA_GET_RELS_ADDI@
-repository[@REPOSITORY_NAME@][fedora_get_object_profile] = @FEDORA_GET_OBJECT_PROFILE@
+repository[@REPOSITORY_NAME@][fedora] = @FEDORA@
 
 ; memcache
 cache_host = localhost
@@ -152,6 +161,8 @@ max_collections = 50
 
 ; logfile for verbose output
 logfile = /tmp/opensearch.log
+; logging to syslog is defined like:
+;logfile = syslog://LOG_LOCAL0
 
 ; sorting & ranking
 ; rank[<rank_name>][<rank_parameter>][<rank_register>] = boost_value
