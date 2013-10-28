@@ -32,6 +32,7 @@ class openSearch extends webServiceServer {
   protected $cache;
   protected $search_profile;
   protected $search_profile_version = 3;
+  protected $repository_name;
   protected $repository; // array containing solr and fedora uri's
   protected $tracking_id; 
   protected $query_language = 'cqleng'; 
@@ -81,16 +82,8 @@ class openSearch extends webServiceServer {
     if (empty($param->query->_value)) {
       $unsupported = 'Error: No query found in request';
     }
-    $repositories = $this->config->get_value('repository', 'setup');
-    if (empty($param->repository->_value)) {
-      $repository_name = $this->config->get_value('default_repository', 'setup');
-      $this->repository = $repositories[$repository_name];
-    }
-    else {
-      $repository_name = $param->repository->_value;
-      if (!$this->repository = $repositories[$param->repository->_value]) {
-        $unsupported = 'Error: Unknown repository: ' . $param->repository->_value;
-      }
+    if ($repository_error = self::set_repositories($param->repository->_value)) {
+      $unsupported = $repository_error;
     }
 
 // for testing and group all
@@ -155,7 +148,7 @@ class openSearch extends webServiceServer {
     }
     $step_value = min($param->stepValue->_value, MAX_COLLECTIONS);
     $use_work_collection |= $sort_types[$sort[0]] == 'random';
-    $key_work_struct = md5($param->query->_value . $repository_name . $filter_agency .
+    $key_work_struct = md5($param->query->_value . $this->repository_name . $filter_agency .
                               $use_work_collection .  implode('', $sort) . $rank . $boost_str . $this->version);
 
     if ($param->queryLanguage->_value) {
@@ -513,6 +506,7 @@ class openSearch extends webServiceServer {
     foreach ($work_ids as &$work) {
       $objects = array();
       foreach ($work as $unit_id) {
+        $data_stream = self::set_data_stream($collection_identifier[$unit_id]);
         self::get_fedora_rels_addi($unit_id, $fedora_addi_relation);
         self::get_fedora_rels_hierarchy($unit_id, $unit_rels_hierarchy);
         list($fpid, $unit_members) = self::parse_unit_for_object_ids($unit_rels_hierarchy);
@@ -526,10 +520,6 @@ class openSearch extends webServiceServer {
           $sort_holdings = sprintf(' %04d ', 9999 - intval($holds['have']));
         }
         $fpid_sort_keys[$fpid] = str_replace($HOLDINGS, $sort_holdings, $unit_sort_keys[$unit_id]);
-// 2DO: Need to get the right record. 
-//    - if rec.collectionIdentifier startes with 7 - get dataStream: localData.<rec.collectionIdentifier>
-//    - else get dataStream: commonData
-        $data_stream = self::set_data_stream($collection_identifier[$unit_id]);
         if ($error = self::get_fedora_raw($fpid, $fedora_result, $data_stream)) {
 // fetch empty record from ini-file and use instead of error
           if ($missing_record) {
@@ -692,12 +682,7 @@ class openSearch extends webServiceServer {
       $error = 'authentication_error';
       return $ret_error;
     }
-    $repositories = $this->config->get_value('repository', 'setup');
-    if (empty($param->repository->_value)) {
-      $this->repository = $repositories[$this->config->get_value('default_repository', 'setup')];
-    }
-    elseif (!$this->repository = $repositories[$param->repository->_value]) {
-      $error = 'Error: Unknown repository: ' . $param->repository->_value;
+    if ($error = self::set_repositories($param->repository->_value)) {
       verbose::log(FATAL, $error);
       return $ret_error;
     }
@@ -871,16 +856,45 @@ class openSearch extends webServiceServer {
 
   /*******************************************************************************/
 
+  /** \brief Sets this->repository from user parameter or defaults to ini-file setup
+   *
+   */
+  private function set_repositories($repository) {
+    $repositories = $this->config->get_value('repository', 'setup');
+    if (!$fedora = $this->config->get_value('fedora', 'setup')) {
+      $fedora = array();
+    }
+    if (!$this->repository_name = $repository) {
+      $this->repository_name = $this->config->get_value('default_repository', 'setup');
+    }
+    if ($this->repository = $repositories[$this->repository_name]) {
+      foreach ($fedora as $key => $url_par) {
+        if (empty($this->repository['fedora_' . $key])) {
+          $this->repository['fedora_' . $key] = $this->repository['fedora'] . $url_par;
+        }
+      }
+    }
+    else {
+      return 'Error: Unknown repository: ' . $this->repository_name;
+    }
+  }
+
   /** \brief return data stream name depending on collection identifier
+   *  - if $col_id (rec.collectionIdentifier) startes with 7 - dataStream: localData.$col_id
+   *  - else dataStream: commonData
    *
    */
   private function set_data_stream($col_id) {
     if ($col_id && (substr($col_id, 0, 1) == '7')) {
-      return 'localData.' . $col_id;
+      $data_stream = 'localData.' . $col_id;
     }
     else {
-      return 'commonData';
+      $data_stream = 'commonData';
     }
+    if (DEBUG_ON) {
+      echo 'dataStream: ' . $data_stream . PHP_EOL;
+    }
+    return $data_stream;
   }
 
   /** \brief parse input for rank parameters
@@ -1243,7 +1257,7 @@ class openSearch extends webServiceServer {
   /** \brief Fetch a raw record from fedora
    *
    */
-  private function get_fedora_raw($fpid, &$fedora_rec,  $datastream_id = 'commonData') {
+  private function get_fedora_raw($fpid, &$fedora_rec, $datastream_id = 'commonData') {
     return self::get_fedora(str_replace('commonData', $datastream_id, $this->repository['fedora_get_raw']), $fpid, $fedora_rec);
   }
 
@@ -1331,6 +1345,9 @@ class openSearch extends webServiceServer {
     self::set_valid_relations_and_sources($profile);
     self::get_fedora_rels_hierarchy($unit_id, $rels_hierarchy);
     $pid = self::fetch_primary_bib_object($rels_hierarchy);
+// 2DO has to get the datastreams of the primary object, since to_record_source should match this
+// 2DO has to send collection_identifier since this could be a match for the data_stream
+// 2DO - NB. more than one to_record_source can be met by $valid_relation. collection_identifier should win
     $to_record_source = self::group_record_source_by_relation($pid, $relation);
     $valid = isset($this->valid_relation[$to_record_source][$relation]);
     if (DEBUG_ON) {
@@ -1647,26 +1664,26 @@ class openSearch extends webServiceServer {
    * @param $debug_info      -
    */
   private function parse_fedora_object(&$fedora_obj, $fedora_addi_obj, $rels_type, $rec_id, $filter, $format, $holdings_count, $debug_info='') {
-    static $dom;
-    if (empty($dom)) {
-      $dom = new DomDocument();
-      $dom->preserveWhiteSpace = false;
+    static $fedora_dom;
+    if (empty($fedora_dom)) {
+      $fedora_dom = new DomDocument();
+      $fedora_dom->preserveWhiteSpace = false;
     }
-    if (@ !$dom->loadXML($fedora_obj)) {
+    if (@ !$fedora_dom->loadXML($fedora_obj)) {
       verbose::log(FATAL, 'Cannot load recid ' . $rec_id . ' into DomXml');
       return;
     }
 
-    $rec = self::extract_record($dom, $rec_id, $format);
+    $rec = self::extract_record($fedora_dom, $rec_id, $format);
 
     if (in_array($rels_type, array('type', 'uri', 'full'))) {
-      self::get_relations_from_commonData_stream($relations, $rec_id, $rels_type);
+      self::get_relations_from_datastream_domobj($relations, $fedora_dom, $rels_type);
       self::get_relations_from_addi_stream($relations, $fedora_addi_obj, $rels_type, $filter, $format);
     }
 
     $ret = $rec;
     $ret->identifier->_value = $rec_id;
-    $ret->creationDate->_value = self::get_creation_date($dom);
+    $ret->creationDate->_value = self::get_creation_date($fedora_dom);
 // hack
     if (empty($ret->creationDate->_value) && (strpos($rec_id, 'tsart:') || strpos($rec_id, 'avis:'))) {
       unset($holdings_count);
@@ -1676,7 +1693,7 @@ class openSearch extends webServiceServer {
       $ret->lendingLibraries->_value = $holdings_count['lend'];
     }
     if ($relations) $ret->relations->_value = $relations;
-    $ret->formatsAvailable->_value = self::scan_for_formats($dom);
+    $ret->formatsAvailable->_value = self::scan_for_formats($fedora_dom);
     if ($debug_info) $ret->queryResultExplanation->_value = $debug_info;
     //if (DEBUG_ON) var_dump($ret);
 
@@ -1726,7 +1743,10 @@ class openSearch extends webServiceServer {
     return $ret;
   }
 
-  /** \brief Handle relations comming from local_data streams
+  /** \brief Handle relations in commonData streams
+   * @param relations (object) return parameter, the relations found
+   * @param rec_id (string) commonData record id
+   * @param rels_type (string) type, uri or full
    *
    */
   private function get_relations_from_commonData_stream(&$relations, $rec_id, $rels_type) {
@@ -1738,30 +1758,40 @@ class openSearch extends webServiceServer {
     if (@ !$stream_dom->loadXML($fedora_streams)) {
       verbose::log(DEBUG, 'Cannot load STREAMS for ' . $rec_id . ' into DomXml');
     } else {
-      $dub_check = array();
-      foreach ($stream_dom->getElementsByTagName('link') as $link) {
-        $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
-        if (empty($dup_check[$url])) {
-          $this_relation = $link->getelementsByTagName('relationType')->item(0)->nodeValue;
-          $valid_relation = FALSE;
-          foreach ($link->getelementsByTagName('collectionIdentifier') as $collection) {
-            $valid_relation = $valid_relation || 
-                              self::check_valid_external_relation($collection->nodeValue, $this_relation, $this->search_profile);
+      self::get_relations_from_datastream_domobj($relations, $stream_dom, $rels_type);
+    }
+  }
+
+  /** \brief Handle relations located in commonData/localData streams in dom representation
+   * @param relations (object) return parameter, the relations found
+   * @param stream_dom (domDocument) commonData or localData stream
+   * @param rels_type (string) type, uri or full
+   *
+   */
+  private function get_relations_from_datastream_domobj(&$relations, &$stream_dom, $rels_type) {
+    $dub_check = array();
+    foreach ($stream_dom->getElementsByTagName('link') as $link) {
+      $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
+      if (empty($dup_check[$url])) {
+        $this_relation = $link->getelementsByTagName('relationType')->item(0)->nodeValue;
+        $valid_relation = FALSE;
+        foreach ($link->getelementsByTagName('collectionIdentifier') as $collection) {
+          $valid_relation = $valid_relation || 
+                            self::check_valid_external_relation($collection->nodeValue, $this_relation, $this->search_profile);
+        }
+        if ($valid_relation) {
+          if (!$relation->relationType->_value = $this_relation) {   // ????? WHY - is relationType sometimes empty?
+            $relation->relationType->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
           }
-          if ($valid_relation) {
-            if (!$relation->relationType->_value = $this_relation) {   // ????? WHY - is relationType sometimes empty?
-              $relation->relationType->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
-            };
-            if ($rels_type == 'uri' || $rels_type == 'full') {
-              $relation->relationUri->_value = $url;
-              $relation->linkObject->_value->accessType->_value = $link->getelementsByTagName('accessType')->item(0)->nodeValue;
-              $relation->linkObject->_value->access->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
-              $relation->linkObject->_value->linkTo->_value = $link->getelementsByTagName('linkTo')->item(0)->nodeValue;
-            }
-            $dup_check[$url] = TRUE;
-            $relations->relation[]->_value = $relation;
-            unset($relation);
+          if ($rels_type == 'uri' || $rels_type == 'full') {
+            $relation->relationUri->_value = $url;
+            $relation->linkObject->_value->accessType->_value = $link->getelementsByTagName('accessType')->item(0)->nodeValue;
+            $relation->linkObject->_value->access->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
+            $relation->linkObject->_value->linkTo->_value = $link->getelementsByTagName('linkTo')->item(0)->nodeValue;
           }
+          $dup_check[$url] = TRUE;
+          $relations->relation[]->_value = $relation;
+          unset($relation);
         }
       }
     }
