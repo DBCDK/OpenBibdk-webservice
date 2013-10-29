@@ -223,7 +223,7 @@ class openSearch extends webServiceServer {
       }
     }
     else {
-      if ($err = self::get_solr_array($solr_query['edismax'], 0, $rows, $sort_q, $rank_q, $facet_q, $filter_q, $boost_str, $debug_query, $solr_arr))
+      if ($err = self::get_solr_array($solr_query['edismax'], 0, $rows, $sort_q, $rank_q, '', $filter_q, $boost_str, $debug_query, $solr_arr))
         $error = $err;
       else {
         self::extract_unit_id_from_solr($solr_arr, $search_ids);
@@ -604,7 +604,6 @@ class openSearch extends webServiceServer {
     }
 
 // try to get a better hitCount by looking for primaryObjects only 
-// 2DO: fetching facets should be moved here - to correct the hitcount on them as well
     $nfcl = $this->config->get_value('num_found_collaps_limit', 'setup');
     if ($nfcl >= $numFound) {
       if ($nfcf = $this->config->get_value('num_found_collapsing_field', 'setup')) {
