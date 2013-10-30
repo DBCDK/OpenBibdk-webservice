@@ -7,6 +7,9 @@
 ;service_http_error = HTTP/1.1 410 Gone
 ;service_http_error = HTTP/1.0 503 Service Unavailable
 
+;version
+; Note that the version is used as part of the cache key, so do not run 2 versions of the service with identical
+; version name, unless you specificly want them to share cache
 version = 3.0
 
 ; wsdl for service
@@ -77,7 +80,7 @@ fedora[get_datastreams] = %s/datastreams?format=xml
 ; - solr: url to solr-server
 ; - fedora: url to fedora
 ; The fedora structure above, will set the repository parameters appending each function to "fedora_" giving
-; fedora_get_raw, fedora_get_rels... 
+; fedora_get_raw, fedora_get_rels... Remember to end the fedora uri with a slash
 ; If one or more of these does not follow the "normal" parameter, they can be set directly below like
 ; repository[my_repository][fedora_get_datastreams] = special/%s/parameter?format=...
 
