@@ -1816,12 +1816,12 @@ class openSearch extends webServiceServer {
       $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
       if (empty($dup_check[$url])) {
         $this_relation = $link->getelementsByTagName('relationType')->item(0)->nodeValue;
-        $valid_relation = FALSE;
+        $relation_ok = FALSE;
         foreach ($link->getelementsByTagName('collectionIdentifier') as $collection) {
-          $valid_relation = $valid_relation || 
+          $relation_ok = $relation_ok || 
                             self::check_valid_external_relation($collection->nodeValue, $this_relation, $this->search_profile);
         }
-        if ($valid_relation) {
+        if ($relation_ok) {
           if (!$relation->relationType->_value = $this_relation) {   // ????? WHY - is relationType sometimes empty?
             $relation->relationType->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
           }
@@ -1865,12 +1865,20 @@ class openSearch extends webServiceServer {
               verbose::log(FATAL, 'Cannot load ' . $rel_uri . ' object from commonData into DomXml');
               $rels_dom = NULL;
             }
-            $col_id = self::get_element_from_admin_data($rels_dom, 'collectionIdentifier');
-            if (empty($this->valid_relation[$col_id])) {  // handling of local data streams
+            $collection_id = self::get_element_from_admin_data($rels_dom, 'collectionIdentifier');
+  // should valid_relation be valid_source (and 2 next below)???
+            if (empty($this->valid_relation[$collection_id])) {  // handling of local data streams
+              if (DEBUG_ON) { 
+                echo 'Datastream: ' . implode(',', self::fetch_valid_sources_from_stream($rel_uri)) . PHP_EOL;
+              }
               foreach (self::fetch_valid_sources_from_stream($rel_uri) as $source) {
                 if ($this->valid_relation[$source]) {
-                  $col_id = self::set_data_stream_name($source);
-                  self::get_fedora_raw($rel_uri, $related_obj, $source);
+                  if (DEBUG_ON) { 
+                    echo '--- use: ' . $source . PHP_EOL;
+                  }
+                   
+                  $collection_id = $source;
+                  self::get_fedora_raw($rel_uri, $related_obj, self::set_data_stream_name($collection_id));
                   if (@ !$rels_dom->loadXML($related_obj)) {
                     verbose::log(FATAL, 'Cannot load ' . $rel_uri . ' object from ' . $source . ' into DomXml');
                     $rels_dom = NULL;
@@ -1879,7 +1887,7 @@ class openSearch extends webServiceServer {
                 }
               }
             }
-            if (isset($this->valid_relation[$col_id]) && self::is_searchable($tag->nodeValue, $filter)) {
+            if (isset($this->valid_relation[$collection_id]) && self::is_searchable($tag->nodeValue, $filter)) {
               $relation->relationType->_value = $this_relation;
               if ($rels_type == 'uri' || $rels_type == 'full') {
                 $relation->relationUri->_value = $rel_uri;
