@@ -149,7 +149,7 @@ class openSearch extends webServiceServer {
     $step_value = min($param->stepValue->_value, MAX_COLLECTIONS);
     $use_work_collection |= $sort_types[$sort[0]] == 'random';
     $key_work_struct = md5($param->query->_value . $this->repository_name . $filter_agency .
-                              $use_work_collection .  implode('', $sort) . $rank . $boost_str . $this->version);
+                              $use_work_collection .  implode('', $sort) . $rank . $boost_str . $this->config->get_inifile_hash());
 
     if ($param->queryLanguage->_value) {
       $this->query_language = $param->queryLanguage->_value;
