@@ -579,15 +579,14 @@ class openSearch extends webServiceServer {
   // But apparently, openFormat breaks when receiving an empty object
     if ($param->collectionType->_value == 'work-1') {
       foreach ($collections as &$c) {
-        $keep_rec = TRUE;
+        $collection_no = 0;
         foreach ($c->_value->collection->_value->object as &$o) {
-          if ($keep_rec) {
+          if ($collection_no++) {
             foreach ($o->_value as $tag => $val) {
               if (!in_array($tag, array('identifier', 'creationDate', 'formatsAvailable'))) {
                 unset($o->_value->$tag);
               }
             }
-            $keep_rec = FALSE;
           }
         }
       }
@@ -1351,12 +1350,7 @@ class openSearch extends webServiceServer {
     self::set_valid_relations_and_sources($profile);
     self::get_fedora_rels_hierarchy($unit_id, $rels_hierarchy);
     $pid = self::fetch_primary_bib_object($rels_hierarchy);
-// 2DO has to get the datastreams of the primary object, since to_record_source should match this
-// 2DO has to send collection_identifier since this could be a match for the data_stream
-// 2DO - NB. more than one to_record_source can be met by $valid_relation. collection_identifier should win
-// 2DO - maybe the to_record_source should be returned in order to select the correct stream i relationData is "full"
-    //$to_record_sources = self::group_record_source_by_relation($pid, $relation);
-    foreach (self::group_record_source_by_relation($pid, $relation) as $to_record_source) {
+    foreach (self::find_record_sources_and_group_by_relation($pid, $relation) as $to_record_source) {
       $valid = isset($this->valid_relation[$to_record_source][$relation]);
       if (DEBUG_ON) {
         echo "pid: $pid to: $to_record_source relation: $relation - " . ($valid ? '' : 'no ') . "go\n";
@@ -1373,7 +1367,7 @@ class openSearch extends webServiceServer {
    *  group the pid using the relation_group_source_tab 
    *
    */
-  private function group_record_source_by_relation($pid, $relation) {
+  private function find_record_sources_and_group_by_relation($pid, $relation) {
     static $group_source_tab;
     if (!isset($group_source_tab)) {
       $group_source_tab = $this->config->get_value('relation_group_source_tab', 'setup');
@@ -1866,10 +1860,9 @@ class openSearch extends webServiceServer {
               $rels_dom = NULL;
             }
             $collection_id = self::get_element_from_admin_data($rels_dom, 'collectionIdentifier');
-  // should valid_relation be valid_source (and 2 next below)???
             if (empty($this->valid_relation[$collection_id])) {  // handling of local data streams
               if (DEBUG_ON) { 
-                echo 'Datastream: ' . implode(',', self::fetch_valid_sources_from_stream($rel_uri)) . PHP_EOL;
+                echo 'Datastream(s): ' . implode(',', self::fetch_valid_sources_from_stream($rel_uri)) . PHP_EOL;
               }
               foreach (self::fetch_valid_sources_from_stream($rel_uri) as $source) {
                 if ($this->valid_relation[$source]) {
