@@ -1810,10 +1810,12 @@ class openSearch extends webServiceServer {
       $url = $link->getelementsByTagName('url')->item(0)->nodeValue;
       if (empty($dup_check[$url])) {
         $this_relation = $link->getelementsByTagName('relationType')->item(0)->nodeValue;
+        unset($lci);
         $relation_ok = FALSE;
         foreach ($link->getelementsByTagName('collectionIdentifier') as $collection) {
           $relation_ok = $relation_ok || 
                             self::check_valid_external_relation($collection->nodeValue, $this_relation, $this->search_profile);
+          $lci[]->_value = $collection->nodeValue;
         }
         if ($relation_ok) {
           if (!$relation->relationType->_value = $this_relation) {   // ????? WHY - is relationType sometimes empty?
@@ -1821,9 +1823,16 @@ class openSearch extends webServiceServer {
           }
           if ($rels_type == 'uri' || $rels_type == 'full') {
             $relation->relationUri->_value = $url;
-            $relation->linkObject->_value->accessType->_value = $link->getelementsByTagName('accessType')->item(0)->nodeValue;
-            $relation->linkObject->_value->access->_value = $link->getelementsByTagName('access')->item(0)->nodeValue;
+            if ($nv = $link->getelementsByTagName('accessType')->item(0)->nodeValue) {
+              $relation->linkObject->_value->accessType->_value = $nv;
+            }
+            if ($nv = $link->getelementsByTagName('access')->item(0)->nodeValue) {
+              $relation->linkObject->_value->access->_value = $nv;
+            }
             $relation->linkObject->_value->linkTo->_value = $link->getelementsByTagName('linkTo')->item(0)->nodeValue;
+            if ($lci) {
+              $relation->linkObject->_value->linkCollectionIdentifier = $lci;
+            }
           }
           $dup_check[$url] = TRUE;
           $relations->relation[]->_value = $relation;

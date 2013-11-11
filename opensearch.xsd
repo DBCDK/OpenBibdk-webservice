@@ -307,15 +307,21 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:documentation xml:lang="en">Number of libraries that will lend the material.</xs:documentation>
 		</xs:annotation>
 	</xs:element>
+	<xs:element name="linkCollectionIdentifier" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Name of collection containing the link</xs:documentation>
+		</xs:annotation>
+	</xs:element>
 	<xs:element name="linkObject">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Description of a link (online access).</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="os:accessType"/>
-				<xs:element ref="os:access"/>
+				<xs:element ref="os:accessType" minOccurs="0"/>
+				<xs:element ref="os:access" minOccurs="0"/>
 				<xs:element ref="os:linkTo"/>
+				<xs:element ref="os:linkCollectionIdentifier" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
