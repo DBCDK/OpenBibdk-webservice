@@ -1182,36 +1182,64 @@ class openSearch extends webServiceServer {
   }
 
   /** \brief Setup call to OpenFormat and execute the format request
+   * If ws_open_format_uri is set, the format request is send to that server otherwise
+   * openformat is included using the [format] section from config
    *
    */
   private function format_records(&$collections, $format) {
+    static $formatRecords;
     $this->watch->start('format');
     foreach ($format as $format_name => $format_arr) {
       if ($format_arr['is_open_format']) {
-        $f_obj->formatRequest->_namespace = $this->xmlns['of'];
-        $f_obj->formatRequest->_value->originalData = $collections;
-        foreach ($f_obj->formatRequest->_value->originalData as $i => $o)
-          $f_obj->formatRequest->_value->originalData[$i]->_namespace = $this->xmlns['of'];
-        $f_obj->formatRequest->_value->outputFormat->_namespace = $this->xmlns['of'];
-        $f_obj->formatRequest->_value->outputFormat->_value = $format_arr['format_name'];
-        $f_obj->formatRequest->_value->outputType->_namespace = $this->xmlns['of'];
-        $f_obj->formatRequest->_value->outputType->_value = 'php';
-        $f_obj->formatRequest->_value->trackingId->_value = $this->tracking_id;
-        $f_xml = $this->objconvert->obj2soap($f_obj);
-        $this->curl->set_post($f_xml);
-        $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: text/xml; charset=UTF-8'));
-        $open_format_uri = $this->config->get_value('ws_open_format_uri', 'setup');
-        $f_result = $this->curl->get($open_format_uri);
-        //$fr_obj = unserialize($f_result);
-        $fr_obj = $this->objconvert->set_obj_namespace(unserialize($f_result), $this->xmlns['']);
-        if (!$fr_obj) {
-          $curl_err = $this->curl->get_status();
-          verbose::log(FATAL, 'openFormat http-error: ' . $curl_err['http_code'] . ' from: ' . $open_format_uri);
+        if ($open_format_uri = $this->config->get_value('ws_open_format_uri', 'setup')) {
+          $f_obj->formatRequest->_namespace = $this->xmlns['of'];
+          $f_obj->formatRequest->_value->originalData = $collections;
+          foreach ($f_obj->formatRequest->_value->originalData as $i => $o)
+            $f_obj->formatRequest->_value->originalData[$i]->_namespace = $this->xmlns['of'];
+          $f_obj->formatRequest->_value->outputFormat->_namespace = $this->xmlns['of'];
+          $f_obj->formatRequest->_value->outputFormat->_value = $format_arr['format_name'];
+          $f_obj->formatRequest->_value->outputType->_namespace = $this->xmlns['of'];
+          $f_obj->formatRequest->_value->outputType->_value = 'php';
+          $f_obj->formatRequest->_value->trackingId->_value = $this->tracking_id;
+          $f_xml = $this->objconvert->obj2soap($f_obj);
+          $this->curl->set_post($f_xml);
+          $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: text/xml; charset=UTF-8'));
+          $f_result = $this->curl->get($open_format_uri);
+          //$fr_obj = unserialize($f_result);
+          $fr_obj = $this->objconvert->set_obj_namespace(unserialize($f_result), $this->xmlns['os']);
+          if (!$fr_obj) {
+            $curl_err = $this->curl->get_status();
+            verbose::log(FATAL, 'openFormat http-error: ' . $curl_err['http_code'] . ' from: ' . $open_format_uri);
+          }
+          else {
+            $struct = key($fr_obj->formatResponse->_value);
+            foreach ($collections as $idx => &$c) {
+              $c->_value->formattedCollection->_value->{$struct} = $fr_obj->formatResponse->_value->{$struct}[$idx];
+            }
+          }
         }
         else {
-          $struct = key($fr_obj->formatResponse->_value);
-          foreach ($collections as $idx => &$c) {
-            $c->_value->formattedCollection->_value->{$struct} = $fr_obj->formatResponse->_value->{$struct}[$idx];
+          require_once('OLS_class_lib/format_class.php');
+          if (empty($formatRecords)) {
+            $formatRecords = new formatRecords($this->config->get_section('format'), $this->xmlns['of'], $this->objconvert, $this->xmlconvert, $this->watch);
+          }
+          $param->outputFormat->_value = $format_arr['format_name'];
+          $param->outputFormat->_namespace = $this->xmlns['of'];
+          $param->originalData = $collections;
+          foreach ($param->originalData as &$oD) {
+            $oD->_namespace = $this->xmlns['of'];
+          }
+          $f_result = $formatRecords->format($param->originalData, $param);
+          $fr_obj = $this->objconvert->set_obj_namespace($f_result, $this->xmlns['os']);
+          if (!$fr_obj) {
+            $curl_err = $this->curl->get_status();
+            verbose::log(FATAL, 'openFormat http-error: ' . $curl_err['http_code'] . ' from: ' . $open_format_uri);
+          }
+          else {
+            $struct = key($fr_obj[0]);
+            foreach ($collections as $idx => &$c) {
+              $c->_value->formattedCollection->_value->{$struct} = $fr_obj[$idx]->{$struct};
+            }
           }
         }
       }
