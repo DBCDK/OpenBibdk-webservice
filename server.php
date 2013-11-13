@@ -603,7 +603,7 @@ class openSearch extends webServiceServer {
     }
 
 // try to get a better hitCount by looking for primaryObjects only 
-    $nfcl = $this->config->get_value('num_found_collaps_limit', 'setup');
+    $nfcl = intval($this->config->get_value('num_found_collaps_limit', 'setup'));
     if ($nfcl >= $numFound) {
       if ($nfcf = $this->config->get_value('num_found_collapsing_field', 'setup')) {
         $this->collapsing_field = $nfcf;
