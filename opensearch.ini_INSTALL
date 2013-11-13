@@ -109,9 +109,9 @@ agency_types = @AGENCY_TYPES@
 ; holding db - return number of items in stock and number of items available for lending
 holdings_db = @HOLDINGS_DB@
 
-; open format
-; address to openFormat service
-; remove ws_open_format_uri and define [format] section below if you want to include openformat directly in opensearch
+; open format - address to openFormat service
+; Use ws_open_format_uri if you want to run openFormat (php) on a different server than this one
+; otherwise set ws_open_format_uri to space and define the [format] section below thereby including openformat directly in opensearch
 ws_open_format_uri = @OPEN_FORMAT@
 
 ; formats supported by openFormat and possible name mapping
@@ -122,7 +122,7 @@ open_format[refWorks][format] = refWorks
 open_format[ris][format] = ris
 
 ; formats supported by solr-indexes. Comma separated list of solr tags
-; fedora.identifier will tage the id of the manifestation from the fedora object
+; fedora.identifier will take the id of the manifestation from the fedora object
 ;solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,rec.id,fedora.identifier,display.language,display.partOf,display.title,display.type,display.workType
 solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,fedora.identifier,display.language,display.partOf,display.title,display.dependentTitle,display.type,display.workType
 
@@ -131,7 +131,7 @@ solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid
 ; if collapsing_field is set, the 2 num_found_collaps* are ignored
 ; collapsing_field = fedoraPid
 
-; Use collapsing field for modyfying hit count when prelimary hit count is below hit_count_collaps_limit
+; Use collapsing field for modifying hit count when prelimary hit count is below hit_count_collaps_limit
 ; if collapsing_field above is set, these 2 parameters are ignored
 num_found_collaps_limit = 500
 num_found_collapsing_field = fedoraPid
@@ -259,28 +259,34 @@ verbose = @VERBOSE_LEVEL@
 dump_timer = opensearch(%s)
 
 [format]
-; if ws_open_format_uri is not defined in the [setup] section, openformat functionality
-; will be included in opensearch and the settings in this section will be used
+; if ws_open_format_uri is not defined (or blank) in the [setup] section, openformat functionality
+; will be included in opensearch and the settings in this section will be used. Unlesss you want to
+; run openFormat on a different server than this on, you should use this section
 
 ; list of java/javacript formatters
 ; Adding more than 1 js_server will parallelize formating over these servers
 ; - if the js_server has more than 1 cpu, parallelizing can be done by adding the same server several times
 ;
-js_server[] = some_server.dk:8018/openformat
+;js_server[] = some_server.dk:8018/openformat
 ;js_server[] = some_server.dk:8018/openformat
 ;js_server[] = some_server.dk:8018/openformat
 ;js_server[] = some_server.dk:8018/openformat
 ;js_server[] = some_other_server.dk:8018/openformat
 ;js_server[] = some_other_server.dk:8018/openformat
+@FORMAT_JS_SERVER_BLOCK@
 
 
-; timeout for java/javascript formatters
-curl_timeout = 20
+; timeout in seconds for java/javascript formatters
+curl_timeout = @FORMAT_CURL_TIMEOUT@
 
 ; cache setting for the format part
+; - cache_host: name of cache server, use localhost in caching is done locally
+; - cache_port: port for cachng host
+; - cache_expire: number of seconds before a cahed entry will expire
 ;cache_host = localhost
 ;cache_port = 11211
 ;cache_expire = 600
+@FORMAT_CACHE_SETTINGS_BLOCK@
 
 [aaa]
 ; aaa Authentication, Access control and Accounting
