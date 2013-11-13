@@ -33,7 +33,8 @@ soapAction[getObject] = getObjectRequest
 
 
 ; prefixes and namespaces
-xmlns[] = http://oss.dbc.dk/ns/opensearch
+default_namespace_prefix = os
+xmlns[os] = http://oss.dbc.dk/ns/opensearch
 xmlns[of] = http://oss.dbc.dk/ns/openformat
 xmlns[ofo] = http://oss.dbc.dk/ns/openformatoutput
 xmlns[xs] = http://www.w3.org/2001/XMLSchema
@@ -110,7 +111,9 @@ holdings_db = @HOLDINGS_DB@
 
 ; open format
 ; address to openFormat service
+; remove ws_open_format_uri and define [format] section below if you want to include openformat directly in opensearch
 ws_open_format_uri = @OPEN_FORMAT@
+
 ; formats supported by openFormat and possible name mapping
 ; open_format[openSearch_format_name][format] = openFormat format name
 open_format[bibliotekdkWorkDisplay][format] = bibliotekdkWorkDisplay
@@ -254,6 +257,30 @@ verbose = @VERBOSE_LEVEL@
 
 ; format for automatic timer dump %s is the soap-action used
 dump_timer = opensearch(%s)
+
+[format]
+; if ws_open_format_uri is not defined in the [setup] section, openformat functionality
+; will be included in opensearch and the settings in this section will be used
+
+; list of java/javacript formatters
+; Adding more than 1 js_server will parallelize formating over these servers
+; - if the js_server has more than 1 cpu, parallelizing can be done by adding the same server several times
+;
+js_server[] = some_server.dk:8018/openformat
+;js_server[] = some_server.dk:8018/openformat
+;js_server[] = some_server.dk:8018/openformat
+;js_server[] = some_server.dk:8018/openformat
+;js_server[] = some_other_server.dk:8018/openformat
+;js_server[] = some_other_server.dk:8018/openformat
+
+
+; timeout for java/javascript formatters
+curl_timeout = 20
+
+; cache setting for the format part
+;cache_host = localhost
+;cache_port = 11211
+;cache_expire = 600
 
 [aaa]
 ; aaa Authentication, Access control and Accounting
