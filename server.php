@@ -1232,8 +1232,8 @@ class openSearch extends webServiceServer {
           $f_result = $formatRecords->format($param->originalData, $param);
           $fr_obj = $this->objconvert->set_obj_namespace($f_result, $this->xmlns['os']);
           if (!$fr_obj) {
-            $curl_err = $this->curl->get_status();
-            verbose::log(FATAL, 'openFormat http-error: ' . $curl_err['http_code'] . ' from: ' . $open_format_uri);
+            $curl_err = $formatRecords->get_status();
+            verbose::log(FATAL, 'openFormat http-error: ' . $curl_err[0]['http_code'] . ' - check [format] settings in ini-file');
           }
           else {
             $struct = key($fr_obj[0]);
