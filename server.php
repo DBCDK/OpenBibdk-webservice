@@ -1221,7 +1221,7 @@ class openSearch extends webServiceServer {
         else {
           require_once('OLS_class_lib/format_class.php');
           if (empty($formatRecords)) {
-            $formatRecords = new formatRecords($this->config->get_section('format'), $this->xmlns['of'], $this->objconvert, $this->xmlconvert, $this->watch);
+            $formatRecords = new FormatRecords($this->config->get_section('format'), $this->xmlns['of'], $this->objconvert, $this->xmlconvert, $this->watch);
           }
           $param->outputFormat->_value = $format_arr['format_name'];
           $param->outputFormat->_namespace = $this->xmlns['of'];
