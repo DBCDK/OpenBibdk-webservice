@@ -123,8 +123,8 @@ open_format[ris][format] = ris
 
 ; formats supported by solr-indexes. Comma separated list of solr tags
 ; fedora.identifier will take the id of the manifestation from the fedora object
-;solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,rec.id,fedora.identifier,display.language,display.partOf,display.title,display.type,display.workType
-solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,fedora.identifier,display.language,display.partOf,display.title,display.dependentTitle,display.type,display.workType
+;solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,rec.id,fedora.identifier,display.language,display.partOf,display.title,display.titleFull,display.type,display.workType
+solr_format[briefDisplay][format] = display.accessType,display.creator,fedoraPid,fedora.identifier,display.language,display.partOf,display.title,display.titleFull,display.dependentTitle,display.type,display.workType
 
 ; if solr's field collapsing should be used, define the collapsing field here
 ; performs poorly on large sets
