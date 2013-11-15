@@ -376,43 +376,46 @@ class openSearch extends webServiceServer {
     define('MAX_QUERY_ELEMENTS', 950);
     $block_idx = $no_bool = 0;
     if (DEBUG_ON) echo 'work_ids: ' . print_r($work_ids, TRUE) . "\n";
-    if ($use_work_collection && $step_value) {
+    if ($numFound && $use_work_collection && $step_value) {
       $no_of_rows = 1;
-      $add_query[$block_idx] = '';
+      $add_queries[$block_idx] = '';
       $which_rec_id = 'unit.id';
       foreach ($work_ids as $w_no => $w) {
         if (TRUE || count($w) > 1 || $format['found_solr_format']) {
-          if ($add_query[$block_idx] && ($no_bool + count($w)) > MAX_QUERY_ELEMENTS) {
+          if ($add_queries[$block_idx] && ($no_bool + count($w)) > MAX_QUERY_ELEMENTS) {
             $block_idx++;
             $no_bool = 0;
           }
           foreach ($w as $id) {
             $id = str_replace(':', '\:', $id);
             if ($this->separate_field_query_style) {
-              $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $which_rec_id . ':' . $id;
+              $add_queries[$block_idx] .= (empty($add_queries[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $which_rec_id . ':' . $id;
             }
             else {
-              $add_query[$block_idx] .= (empty($add_query[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $id;
+              $add_queries[$block_idx] .= (empty($add_queries[$block_idx]) ? '' : ' ' . OR_OP . ' ') . $id;
             }
             $no_bool++;
             $no_of_rows++;
           }
         }
       }
-      if (TRUE || !empty($add_query[0]) || count($add_query) > 1 || $format['found_solr_format']) {
-        foreach ($add_query as $add_idx => $add_q) {
+  // code below should always run in order to at least check against search profile
+      if (TRUE || !empty($add_queries[0]) || count($add_queries) > 1 || $format['found_solr_format']) {
+        foreach ($add_queries as $add_idx => $add_query) {
           if ($this->separate_field_query_style) {
-              $add_q =  '(' . $add_q . ')';
+              $add_q =  '(' . $add_query . ')';
           }
           else {
-              $add_q =  $which_rec_id . ':(' . $add_q . ')';
+              $add_q =  $which_rec_id . ':(' . $add_query . ')';
           }
           if (self::xs_boolean($param->allObjects->_value)) {
             $chk_query['edismax'] =  $add_q;
           }
           else {
             $chk_query = $this->cql2solr->cql_2_edismax($param->query->_value);
-            $chk_query['edismax'] =  '(' . $chk_query['edismax'] . ') ' . AND_OP . ' ' . $add_q;
+            if ($add_query) {
+              $chk_query['edismax'] =  '(' . $chk_query['edismax'] . ') ' . AND_OP . ' ' . $add_q;
+            }
           }
           if ($chk_query['error']) {
             $error = $chk_query['error'];
@@ -487,7 +490,7 @@ class openSearch extends webServiceServer {
 
     if (DEBUG_ON) echo 'txt: ' . $txt . "\n";
     if (DEBUG_ON) echo 'solr_2_arr: ' . print_r($solr_2_arr, TRUE) . "\n";
-    if (DEBUG_ON) echo 'add_query: ' . print_r($add_query, TRUE) . "\n";
+    if (DEBUG_ON) echo 'add_queries: ' . print_r($add_queries, TRUE) . "\n";
     if (DEBUG_ON) echo 'used_search_fids: ' . print_r($used_search_fids, TRUE) . "\n";
 
     $this->watch->stop('Build_id');
