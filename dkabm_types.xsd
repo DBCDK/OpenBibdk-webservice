@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ac="http://biblstandard.dk/ac/namespace/" xmlns:dkdcplus="http://biblstandard.dk/abm/namespace/dkdcplus/" xmlns:dcterms="http://purl.org/dc/terms/" elementFormDefault="qualified" attributeFormDefault="unqualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ac="http://biblstandard.dk/ac/namespace/" xmlns:dkdcplus="http://biblstandard.dk/abm/namespace/dkdcplus/" xmlns:dcterms="http://purl.org/dc/terms/" elementFormDefault="qualified" attributeFormDefault="unqualified" targetNamespace="http://biblstandard.dk/abm/namespace/dkabm_types/">
 	<xs:annotation>
 		<xs:documentation>
       Imports various DKABM types.
