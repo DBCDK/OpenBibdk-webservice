@@ -566,6 +566,7 @@ class openSearch extends webServiceServer {
                                     $explain);
       }
       $work = $sorted_work;
+      if (DEBUG_ON) print_r($sorted_work);
       unset($sorted_work);
       $o->collection->_value->resultPosition->_value = $rec_no++;
       $o->collection->_value->numberOfObjects->_value = count($objects);
@@ -576,6 +577,8 @@ class openSearch extends webServiceServer {
       $collections[]->_value = $o;
       unset($o);
     }
+    if (DEBUG_ON) print_r($unit_sort_keys);
+    if (DEBUG_ON) print_r($fpid_sort_keys);
     $this->watch->stop('get_recs');
 
   // TODO: if an openFormat is specified, we need to remove data so openFormat dont format unneeded stuff
@@ -2026,7 +2029,7 @@ class openSearch extends webServiceServer {
     return $ret;
   }
 
-  /** \brief Handle non-standarzied characters - one day maybe, this code can be deleted
+  /** \brief Handle non-standardized characters - one day maybe, this code can be deleted
    *
    */
   private function normalize_chars($s) {
