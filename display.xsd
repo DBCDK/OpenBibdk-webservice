@@ -29,6 +29,7 @@
 				<xs:element ref="ds:title" minOccurs="0"/>
 				<xs:element ref="ds:type" minOccurs="0"/>
 				<xs:element ref="ds:workType" minOccurs="0"/>
+				<xs:element ref="ds:multiVolumeType" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -60,6 +61,11 @@
 	<xs:element name="language" type="xs:string">
 		<xs:annotation>
 			<xs:documentation xml:lang="en">Language of the work</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="multiVolumeType" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">Type of multi volume</xs:documentation>
 		</xs:annotation>
 	</xs:element>
 	<xs:element name="partOf" type="xs:string">
