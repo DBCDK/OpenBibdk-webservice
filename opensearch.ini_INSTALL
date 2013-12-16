@@ -32,6 +32,19 @@ soapAction[search] = searchRequest
 soapAction[getObject] = getObjectRequest
 
 
+; url_override
+; url_override[url_command] = functionToCall
+; if start of request equals url_command and functionToCall exists, it will be called
+; like: myservice.dk/myversion?url_command
+; ShowInfo, Version, HowRU, RegressionTest are found in the abstract service
+; if not specified, defaults to HowRU, ShowInfo and Version
+url_override[ShowInfo] = ShowInfo
+url_override[Version] = Version
+url_override[HowRU] = HowRU
+url_override[RegressionTest] = RegressionTest
+; diffCqlFileWithSolr - use &repository= in url if set
+url_override[diffCqlFileWithSolr] = diffCqlFileWithSolr
+
 ; prefixes and namespaces
 default_namespace_prefix = os
 xmlns[os] = http://oss.dbc.dk/ns/opensearch
@@ -335,6 +348,7 @@ curl_timeout = @FORMAT_CURL_TIMEOUT@
 ; from url: action=thisSoapAction&some.number=nn&another.number=mm
 ;
 action[search][] = query
+action[search][] = queryFilter
 action[search][] = queryLanguage
 action[search][] = agency
 action[search][] = profile

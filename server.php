@@ -79,6 +79,9 @@ class openSearch extends webServiceServer {
 
     // check for unsupported stuff
     $ret_error->searchResponse->_value->error->_value = &$unsupported;
+    if ($param->queryFilter->_value) {
+      $param->query->_value .= ($param->queryLanguage->_value == 'cqldan' ? ' OG ' : ' AND ') . $param->queryFilter->_value;
+    }
     if (empty($param->query->_value)) {
       $unsupported = 'Error: No query found in request';
     }
@@ -860,6 +863,56 @@ class openSearch extends webServiceServer {
 
   /*******************************************************************************/
 
+  /** \brief Compares registers in opensearch_cql with solr, using the luke request handler:
+   *   http://wiki.apache.org/solr/LukeRequestHandler
+   */
+  protected function diffCqlFileWithSolr() {
+    $repos = $this->config->get_value('repository', 'setup');
+    if (!$rep = $_REQUEST['repository']) {
+      $rep = $this->config->get_value('default_repository', 'setup');
+    }
+    $luke_url = $repos[$rep]['solr'];
+    if (empty($luke_url)) {
+      die('Cannot find url to solr for repository: ' . $rep);
+    }
+    $luke = $this->config->get_value('luke', 'setup');
+    foreach ($luke as $from => $to) {
+      $luke_url = str_replace($from, $to, $luke_url);
+    }
+    $luke_result = json_decode($this->curl->get($luke_url));
+    if (!$luke_result) {
+      die('Cannot fetch register info from solr: ' . $luke_url);
+    }
+    $luke_fields = $luke_result->fields;
+    $dom = new DomDocument();
+    $dom->load('opensearch_cql.xml');
+
+    foreach ($dom->getElementsByTagName('indexInfo') as $info_item) {
+      foreach ($info_item->getElementsByTagName('index') as $index_item) {
+        $map_item = $index_item->getElementsByTagName('map')->item(0);
+        $name_item = $map_item->getElementsByTagName('name')->item(0);
+        $full_name = $name_item->getAttribute('set').'.'.$name_item->nodeValue;
+        if ($luke_fields->$full_name) {
+          unset($luke_fields->$full_name);
+        } 
+        else {
+          $cql_regs[] = $full_name;
+        } 
+      }
+    }
+
+    echo '<html><body><h1>Found in opensearch_cql.xml but not in Solr</h1>';
+    foreach ($cql_regs as $cr)
+      echo $cr . '</br>';
+    echo '</br><h1>Found in Solr but not in opensearch_cql.xml</h1>';
+    foreach ($luke_fields as $lf => $obj)
+      echo $lf . '</br>';
+    
+    die('</body></html>');
+  }
+
+  /*******************************************************************************/
+
   /** \brief Sets this->repository from user parameter or defaults to ini-file setup
    *
    */
@@ -1533,7 +1586,7 @@ class openSearch extends webServiceServer {
   /** \brief Build bq (BoostQuery) as field:content^weight
    *
    */
-  public static function boostUrl($boost) {
+  private static function boostUrl($boost) {
     $ret = '';
     if ($boost) {
       $boosts = (is_array($boost) ? $boost : array($boost));
