@@ -45,6 +45,7 @@ You should have received a copy of the GNU Affero General Public License along w
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="os:query"/>
+				<xs:element ref="os:queryFilter" minOccurs="0"/>
 				<xs:element ref="os:queryLanguage" minOccurs="0"/>
 				<xs:element ref="os:agency" minOccurs="0"/>
 				<xs:element ref="os:profile" minOccurs="0"/>
@@ -433,6 +434,11 @@ You should have received a copy of the GNU Affero General Public License along w
 				<xs:element ref="os:rankFrequency"/>
 			</xs:sequence>
 		</xs:complexType>
+	</xs:element>
+	<xs:element name="queryFilter" type="xs:string">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">The filter part of the query specified in CQL.</xs:documentation>
+		</xs:annotation>
 	</xs:element>
 	<xs:element name="queryLanguage" type="os:queryLanguageType">
 		<xs:annotation>
