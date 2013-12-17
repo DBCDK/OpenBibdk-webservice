@@ -1214,7 +1214,9 @@ class openSearch extends webServiceServer {
                       }
                       else {
                         if (is_array($solr_doc[$format_tag])) {
-                          $mani->_value->$tag_value->_value = self::normalize_chars($solr_doc[$format_tag][0]);
+                          foreach ($solr_doc[$format_tag] as $solr_tag) {
+                            $mani->_value->{$tag_value}[]->_value = self::normalize_chars($solr_tag);
+                          }
                         }
                         else {
                           $mani->_value->$tag_value->_value = self::normalize_chars($solr_doc[$format_tag]);
