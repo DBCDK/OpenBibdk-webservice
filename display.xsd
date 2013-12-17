@@ -19,7 +19,7 @@
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="ds:accessType" minOccurs="0"/>
-				<xs:element ref="ds:creator" minOccurs="0"/>
+				<xs:element ref="ds:creator" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="ds:fedoraPid" minOccurs="0"/>
 				<xs:element ref="ds:titleFull" minOccurs="0"/>
 				<xs:element ref="ds:id" minOccurs="0"/>
@@ -28,7 +28,7 @@
 				<xs:element ref="ds:partOf" minOccurs="0"/>
 				<xs:element ref="ds:title" minOccurs="0"/>
 				<xs:element ref="ds:type" minOccurs="0"/>
-				<xs:element ref="ds:workType" minOccurs="0"/>
+				<xs:element ref="ds:workType" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="ds:multiVolumeType" minOccurs="0"/>
 			</xs:sequence>
 		</xs:complexType>
