@@ -887,7 +887,7 @@ class openSearch extends webServiceServer {
     if (!$luke_result) {
       die('Cannot fetch register info from solr: ' . $luke_url);
     }
-    $luke_fields = $luke_result->fields;
+    $luke_fields = &$luke_result->fields;
     $dom = new DomDocument();
     $dom->load($this->cql_file) || die('Cannot read cql_file: ' . $this->cql_file);
 
@@ -907,10 +907,10 @@ class openSearch extends webServiceServer {
       }
     }
 
-    echo '<html><body><h1>Found in opensearch_cql.xml but not in Solr</h1>';
+    echo '<html><body><h1>Found in ' . $this->cql_file . ' but not in Solr</h1>';
     foreach ($cql_regs as $cr)
       echo $cr . '</br>';
-    echo '</br><h1>Found in Solr but not in opensearch_cql.xml</h1>';
+    echo '</br><h1>Found in Solr but not in ' . $this->cql_file . '</h1>';
     foreach ($luke_fields as $lf => $obj)
       echo $lf . '</br>';
     
