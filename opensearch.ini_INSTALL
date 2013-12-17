@@ -75,6 +75,9 @@ xmldir = ./xml
 missing_record = <?xml version='1.0' encoding='UTF-8'?><ting:container xmlns:ting='http://www.dbc.dk/ting' xmlns:dkabm='http://biblstandard.dk/abm/namespace/dkabm/' xmlns:dc='http://purl.org/dc/elements/1.1/'><dkabm:record><dc:title>Cannot read record: %s</dc:title></dkabm:record></ting:container>
 
 
+; cql file - xml file containing useable registers and cql operators. Defaults to opensearch_cql.xml
+cql_file = opensearch_cql.xml
+
 ; default repository
 default_repository = @REPOSITORY_NAME@
 
