@@ -1475,12 +1475,12 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-                        <title lang="da">Accessionsdato (enkeltord)</title>
-                        <title lang="en">Acquisition date (term)</title>
-                        <map>
-                                <name set="term">acquisitionDate</name>
-                        </map>
-                </index>
+			<title lang="da">Accessionsdato (enkeltord)</title>
+			<title lang="en">Acquisition date (term)</title>
+			<map>
+				<name set="term">acquisitionDate</name>
+			</map>
+			</index>
 		<index>
 			<title lang="da">Målgruppe (enkeltord)</title>
 			<title lang="en">Audience (term)</title>
@@ -1606,6 +1606,66 @@ You should have received a copy of the GNU Affero General Public License along w
 			<map>
 				<name set="term">workType</name>
 			</map>
+		</index>
+		<index>
+			<title lang="da">Internt register</title>
+			<hidden>
+				<name set="cql">allIndexes</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">accessType</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">creator</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">dependentTitle</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">language</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">partOf</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">title</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">titleFull</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">type</name>
+			</hidden>
+		</index>
+		<index>
+			<title lang="da">Display register</title>
+			<hidden>
+				<name set="display">workType</name>
+			</hidden>
 		</index>
 	</indexInfo>
 	<configInfo>
