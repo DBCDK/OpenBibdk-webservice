@@ -43,6 +43,7 @@ class openSearch extends webServiceServer {
   protected $valid_relation = array(); 
   protected $valid_source = array(); 
   protected $rank_frequence_debug;
+  protected $cql_file = 'opensearch_cql.xml';
 
 
   public function __construct() {
@@ -60,6 +61,9 @@ class openSearch extends webServiceServer {
     define(MAX_OBJECTS_IN_WORK, 100);
     define('AND_OP', 'AND');
     define('OR_OP', 'OR');
+
+    if ($cf = $this->config->get_value('cql_file', 'setup'))
+      $this->cql_file = $cf;
   }
 
   /** \brief Entry search: Handles the request and set up the response
@@ -157,7 +161,7 @@ class openSearch extends webServiceServer {
     if ($param->queryLanguage->_value) {
       $this->query_language = $param->queryLanguage->_value;
     }
-    $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config, $this->query_language);
+    $this->cql2solr = new SolrQuery($this->cql_file, $this->config, $this->query_language);
     $solr_query = $this->cql2solr->cql_2_edismax($param->query->_value);
     if ($solr_query['error']) {
       $error = $solr_query['error'];
@@ -741,7 +745,7 @@ class openSearch extends webServiceServer {
     foreach ($fpids as $fpid_number => $fpid) {
       $id_array[] = $fpid->_value;
     }
-    $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config);
+    $this->cql2solr = new SolrQuery($this->cql_file, $this->config);
     $chk_query = $this->cql2solr->cql_2_edismax('rec.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
     $solr_q = $this->repository['solr'] .
               '?wt=phps' .
@@ -787,7 +791,7 @@ class openSearch extends webServiceServer {
         if (self::xs_boolean($param->includeHoldingsCount->_value)) {
           self::get_fedora_rels_hierarchy($unit_id, $unit_rels_hierarchy);
           list($dummy, $dummy) = self::parse_unit_for_object_ids($unit_rels_hierarchy);
-          $this->cql2solr = new SolrQuery('opensearch_cql.xml', $this->config);
+          $this->cql2solr = new SolrQuery($this->cql_file, $this->config);
           $no_of_holdings = self::get_holdings($fpid->_value);
         }
       }
@@ -863,7 +867,7 @@ class openSearch extends webServiceServer {
 
   /*******************************************************************************/
 
-  /** \brief Compares registers in opensearch_cql with solr, using the luke request handler:
+  /** \brief Compares registers in cql_file with solr, using the luke request handler:
    *   http://wiki.apache.org/solr/LukeRequestHandler
    */
   protected function diffCqlFileWithSolr() {
@@ -885,18 +889,21 @@ class openSearch extends webServiceServer {
     }
     $luke_fields = $luke_result->fields;
     $dom = new DomDocument();
-    $dom->load('opensearch_cql.xml');
+    $dom->load($this->cql_file) || die('Cannot read cql_file: ' . $this->cql_file);
 
     foreach ($dom->getElementsByTagName('indexInfo') as $info_item) {
       foreach ($info_item->getElementsByTagName('index') as $index_item) {
-        $map_item = $index_item->getElementsByTagName('map')->item(0);
-        $name_item = $map_item->getElementsByTagName('name')->item(0);
-        $full_name = $name_item->getAttribute('set').'.'.$name_item->nodeValue;
-        if ($luke_fields->$full_name) {
-          unset($luke_fields->$full_name);
-        } 
-        else {
-          $cql_regs[] = $full_name;
+        if (!$map_item = $index_item->getElementsByTagName('map')->item(0)) {
+          $map_item = $index_item->getElementsByTagName('hidden')->item(0);
+        }
+        if ($map_item && ($name_item = $map_item->getElementsByTagName('name')->item(0))) {
+          $full_name = $name_item->getAttribute('set').'.'.$name_item->nodeValue;
+          if ($luke_fields->$full_name) {
+            unset($luke_fields->$full_name);
+          } 
+          else {
+            $cql_regs[] = $full_name;
+          } 
         } 
       }
     }
