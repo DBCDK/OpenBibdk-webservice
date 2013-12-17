@@ -893,18 +893,17 @@ class openSearch extends webServiceServer {
 
     foreach ($dom->getElementsByTagName('indexInfo') as $info_item) {
       foreach ($info_item->getElementsByTagName('index') as $index_item) {
-        if (!$map_item = $index_item->getElementsByTagName('map')->item(0)) {
-          $map_item = $index_item->getElementsByTagName('hidden')->item(0);
+        if ($map_item = $index_item->getElementsByTagName('map')->item(0)) {
+          if ($name_item = $map_item->getElementsByTagName('name')->item(0)) {
+            $full_name = $name_item->getAttribute('set').'.'.$name_item->nodeValue;
+            if ($luke_fields->$full_name) {
+              unset($luke_fields->$full_name);
+            } 
+            else {
+              $cql_regs[] = $full_name;
+            } 
+          } 
         }
-        if ($map_item && ($name_item = $map_item->getElementsByTagName('name')->item(0))) {
-          $full_name = $name_item->getAttribute('set').'.'.$name_item->nodeValue;
-          if ($luke_fields->$full_name) {
-            unset($luke_fields->$full_name);
-          } 
-          else {
-            $cql_regs[] = $full_name;
-          } 
-        } 
       }
     }
 

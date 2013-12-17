@@ -1609,63 +1609,63 @@ You should have received a copy of the GNU Affero General Public License along w
 		</index>
 		<index>
 			<title lang="da">Internt register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="cql">allIndexes</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">accessType</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">creator</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">dependentTitle</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">language</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">partOf</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">title</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">titleFull</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">type</name>
-			</hidden>
+			</map>
 		</index>
 		<index>
 			<title lang="da">Display register</title>
-			<hidden>
+			<map hidden="1">
 				<name set="display">workType</name>
-			</hidden>
+			</map>
 		</index>
 	</indexInfo>
 	<configInfo>
