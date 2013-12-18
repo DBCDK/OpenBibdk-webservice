@@ -27,7 +27,7 @@
 				<xs:element ref="ds:language" minOccurs="0"/>
 				<xs:element ref="ds:partOf" minOccurs="0"/>
 				<xs:element ref="ds:title" minOccurs="0"/>
-				<xs:element ref="ds:type" minOccurs="0"/>
+				<xs:element ref="ds:type" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="ds:workType" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="ds:multiVolumeType" minOccurs="0"/>
 			</xs:sequence>
