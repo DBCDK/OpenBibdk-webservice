@@ -623,7 +623,8 @@ class openSearch extends webServiceServer {
       }
     }
     $this->watch->start('Solr 3');
-    if ($err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr)) {
+    //if ($err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, '(' . $filter_q . ')+AND+unit.isPrimaryObject:true', '', $debug_query, $solr_arr)) {
+    if ($err = self::get_solr_array($solr_query['edismax'], 0, 0, '', '', $facet_q, $filter_q, '', $debug_query, $solr_arr)) {
       $this->watch->stop('Solr 3');
       $error = $err;
       return $ret_error;
@@ -1208,17 +1209,20 @@ class openSearch extends webServiceServer {
                       else {
                         $tag_value = $format_tag;
                       }
-                      $mani->_value->$tag_value->_namespace = $solr_display_ns;
                       if ($format_tag == 'fedora.identifier') {
                         $mani->_value->$tag_value->_value = $fpid;
                       }
                       else {
                         if (is_array($solr_doc[$format_tag])) {
                           foreach ($solr_doc[$format_tag] as $solr_tag) {
-                            $mani->_value->{$tag_value}[]->_value = self::normalize_chars($solr_tag);
+                            $help->_namespace = $solr_display_ns;
+                            $help->_value = self::normalize_chars($solr_tag);
+                            $mani->_value->{$tag_value}[] = $help;
+                            unset($help);
                           }
                         }
                         else {
+                          $mani->_value->$tag_value->_namespace = $solr_display_ns;
                           $mani->_value->$tag_value->_value = self::normalize_chars($solr_doc[$format_tag]);
                         }
                       }
