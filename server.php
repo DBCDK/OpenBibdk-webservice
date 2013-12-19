@@ -276,8 +276,8 @@ class openSearch extends webServiceServer {
                                $this->config->get_value('cache_port', 'setup'),
                                $this->config->get_value('cache_expire', 'setup'));
       if (empty($_GET['skipCache'])) {
-        if ($work_struct = $this->cache->get($key_work_struct)) {
-          verbose::log(STAT, 'Cache hit, lines: ' . count($work_struct));
+        if ($work_cache_struct = $this->cache->get($key_work_struct)) {
+          verbose::log(STAT, 'Cache hit, lines: ' . count($work_cache_struct));
         }
         else {
           verbose::log(STAT, 'Cache miss');
@@ -320,8 +320,8 @@ class openSearch extends webServiceServer {
         $w_no++;
         // find relations for the record in fedora
         // uid: id as found in solr's fedoraPid
-        if ($work_struct[$w_no]) {
-          $uid_array = $work_struct[$w_no];
+        if ($work_cache_struct[$w_no]) {
+          $uid_array = $work_cache_struct[$w_no];
         }
         else {
           if ($use_work_collection) {
@@ -342,10 +342,6 @@ class openSearch extends webServiceServer {
                 verbose::log(FATAL, 'Fedora fetch/parse work-record: ' . $work_id . ' refered from: ' . $uid);
                 $uid_array = array($uid);
               }
-              if (count($uid_array) >= MAX_OBJECTS_IN_WORK) {
-                verbose::log(FATAL, 'Fedora work-record: ' . $work_id . ' refered from: ' . $uid . ' contains ' . count($uid_array) . ' objects');
-                array_splice($uid_array, MAX_OBJECTS_IN_WORK);
-              }
               if (DEBUG_ON) {
                 echo 'fid: ' . $uid . ' -> ' . $work_id . " -> object(s):\n";
                 print_r($uid_array);
@@ -358,13 +354,15 @@ class openSearch extends webServiceServer {
           }
           else
             $uid_array = array($uid);
-          $work_struct[$w_no] = $uid_array;
         }
 
         foreach ($uid_array as $id) {
           $used_search_fids[$id] = TRUE;
-          if ($w_no >= $start)
-            $work_ids[$w_no][] = $id;
+        }
+        $work_cache_struct[$w_no] = $uid_array;
+        if (count($uid_array) >= MAX_OBJECTS_IN_WORK) {
+          verbose::log(FATAL, 'Fedora work-record: ' . $work_id . ' refered from: ' . $uid . ' contains ' . count($uid_array) . ' objects');
+          array_splice($uid_array, MAX_OBJECTS_IN_WORK);
         }
         if ($w_no >= $start)
           $work_ids[$w_no] = $uid_array;
@@ -503,7 +501,7 @@ class openSearch extends webServiceServer {
     $this->watch->stop('Build_id');
 
     if ($this->cache)
-      $this->cache->set($key_work_struct, $work_struct);
+      $this->cache->set($key_work_struct, $work_cache_struct);
 
     $missing_record = $this->config->get_value('missing_record', 'setup');
 
@@ -641,16 +639,16 @@ class openSearch extends webServiceServer {
 */
 
 //var_dump($solr_2_arr);
-//var_dump($work_struct);
+//var_dump($work_cache_struct);
 //die();
     if ($_REQUEST['work'] == 'debug') {
       echo "returned_work_ids: \n";
       print_r($work_ids);
       echo "cache: \n";
-      print_r($work_struct);
+      print_r($work_cache_struct);
       die();
     }
-    //if (DEBUG_ON) { print_r($work_struct); die(); }
+    //if (DEBUG_ON) { print_r($work_cache_struct); die(); }
     //if (DEBUG_ON) { print_r($collections); die(); }
     //if (DEBUG_ON) { print_r($solr_arr); die(); }
 
