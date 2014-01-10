@@ -1208,15 +1208,22 @@ class openSearch extends webServiceServer {
                         $tag_value = $format_tag;
                       }
                       if ($format_tag == 'fedora.identifier') {
+                        $mani->_value->$tag_value->_namespace = $solr_display_ns;
                         $mani->_value->$tag_value->_value = $fpid;
                       }
                       else {
                         if (is_array($solr_doc[$format_tag])) {
-                          foreach ($solr_doc[$format_tag] as $solr_tag) {
-                            $help->_namespace = $solr_display_ns;
-                            $help->_value = self::normalize_chars($solr_tag);
-                            $mani->_value->{$tag_value}[] = $help;
-                            unset($help);
+                          if (TRUE) {
+                            $mani->_value->$tag_value->_namespace = $solr_display_ns;
+                            $mani->_value->$tag_value->_value = self::normalize_chars($solr_doc[$format_tag][0]);
+                          }
+                          else {
+                            foreach ($solr_doc[$format_tag] as $solr_tag) {
+                              $help->_namespace = $solr_display_ns;
+                              $help->_value = self::normalize_chars($solr_tag);
+                              $mani->_value->{$tag_value}[] = $help;
+                              unset($help);
+                            }
                           }
                         }
                         else {
@@ -1263,8 +1270,11 @@ class openSearch extends webServiceServer {
         if ($open_format_uri = $this->config->get_value('ws_open_format_uri', 'setup')) {
           $f_obj->formatRequest->_namespace = $this->xmlns['of'];
           $f_obj->formatRequest->_value->originalData = $collections;
-          foreach ($f_obj->formatRequest->_value->originalData as $i => $o)
-            $f_obj->formatRequest->_value->originalData[$i]->_namespace = $this->xmlns['of'];
+  // need to set correct namespace
+          foreach ($f_obj->formatRequest->_value->originalData as $i => &$oD) {
+            $save_ns[$i] = $oD->_namespace;
+            $oD->_namespace = $this->xmlns['of'];
+          }
           $f_obj->formatRequest->_value->outputFormat->_namespace = $this->xmlns['of'];
           $f_obj->formatRequest->_value->outputFormat->_value = $format_arr['format_name'];
           $f_obj->formatRequest->_value->outputType->_namespace = $this->xmlns['of'];
@@ -1275,7 +1285,11 @@ class openSearch extends webServiceServer {
           $this->curl->set_option(CURLOPT_HTTPHEADER, array('Content-Type: text/xml; charset=UTF-8'));
           $f_result = $this->curl->get($open_format_uri);
           //$fr_obj = unserialize($f_result);
-          $fr_obj = $this->objconvert->set_obj_namespace(unserialize($f_result), $this->xmlns['os']);
+          $fr_obj = $this->objconvert->set_obj_namespace(unserialize($f_result), $this->xmlns['of']);
+  // need to restore correct namespace
+          foreach ($f_obj->formatRequest->_value->originalData as $i => &$oD) {
+            $oD->_namespace = $save_ns[$i];
+          }
           if (!$fr_obj) {
             $curl_err = $this->curl->get_status();
             verbose::log(FATAL, 'openFormat http-error: ' . $curl_err['http_code'] . ' from: ' . $open_format_uri);
@@ -1295,11 +1309,17 @@ class openSearch extends webServiceServer {
           $param->outputFormat->_value = $format_arr['format_name'];
           $param->outputFormat->_namespace = $this->xmlns['of'];
           $param->originalData = $collections;
-          foreach ($param->originalData as &$oD) {
+  // need to set correct namespace
+          foreach ($param->originalData as $i => &$oD) {
+            $save_ns[$i] = $oD->_namespace;
             $oD->_namespace = $this->xmlns['of'];
           }
           $f_result = $formatRecords->format($param->originalData, $param);
           $fr_obj = $this->objconvert->set_obj_namespace($f_result, $this->xmlns['os']);
+  // need to restore correct namespace
+          foreach ($param->originalData as $i => &$oD) {
+            $oD->_namespace = $save_ns[$i];
+          }
           if (!$fr_obj) {
             $curl_err = $formatRecords->get_status();
             verbose::log(FATAL, 'openFormat http-error: ' . $curl_err[0]['http_code'] . ' - check [format] settings in ini-file');
