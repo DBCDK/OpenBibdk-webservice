@@ -1414,6 +1414,13 @@ You should have received a copy of the GNU Affero General Public License along w
             </map>
         </index>
 		<index>
+			<title lang="da">Noder (facet)</title>
+			<title lang="en">Sheetmusic (facet)</title>
+			<map>
+				<name set="facet">sheetMusic</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Emne (facet)</title>
 			<title lang="en">Subject (facet)</title>
 			<map>
