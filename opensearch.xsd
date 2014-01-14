@@ -677,8 +677,10 @@ You should have received a copy of the GNU Affero General Public License along w
 			<xs:enumeration value="facet.creator"/>
 			<xs:enumeration value="facet.date"/>
 			<xs:enumeration value="facet.language"/>
+			<xs:enumeration value="facet.sheetMusic"/>
 			<xs:enumeration value="facet.subject"/>
 			<xs:enumeration value="facet.type"/>
+			
 		</xs:restriction>
 	</xs:simpleType>
     <xs:simpleType name="fieldNameType">
