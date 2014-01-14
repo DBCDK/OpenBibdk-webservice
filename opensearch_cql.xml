@@ -1582,6 +1582,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="da">Beskrivelse (enkeltord)</title>
+			<title lang="en">Description (term)</title>
+			<map>
+				<name set="term">description</name>
+			</map>
+		</index>
+		<index>
 			<title lang="da">Genre (enkeltord)</title>
 			<title lang="en">Genre (term)</title>
 			<map>
