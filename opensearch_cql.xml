@@ -15,7 +15,7 @@ You should have received a copy of the GNU Affero General Public License along w
 		<database/>
 	</serverInfo>
 	<metaInfo>
-	    <dateModified>12/17/2013</dateModified>
+	    <dateModified>02/17/2014</dateModified>
 	</metaInfo>
 	<indexInfo>
 	    <set identifier="info:srw/cql-context-set/1/cql-v1.1" name="cql"/>
@@ -37,8 +37,8 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
-			<title lang="en">Same as nothing</title>
-			<title lang="da">Fritekst, samme som ingenting</title>
+			<title lang="en">Same as no index</title>
+			<title lang="da">Fritekst, samme som intet index</title>
 			<map>
 				<name set="cql">serverChoice</name>
 			</map>
