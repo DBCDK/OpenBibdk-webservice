@@ -37,6 +37,13 @@ You should have received a copy of the GNU Affero General Public License along w
 			</map>
 		</index>
 		<index>
+			<title lang="en">Same as nothing</title>
+			<title lang="da">Fritekst, samme som ingenting</title>
+			<map>
+				<name set="cql">serverChoice</name>
+			</map>
+		</index>
+		<index>
 			<title lang="en">Same as term.default</title>
 			<title lang="da">Fritekst, samme som term.default</title>
 			<map>
@@ -749,8 +756,8 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="en">No English description available</title>
 			<title lang="da">Forfatter</title>
 			<map>
-				<name set="dkcclterm">fo</name>
-				<alias>fo</alias>
+				<name set="dkcclterm" slop="6">fo</name>
+				<alias set="" slop="5">fo</alias>
 			</map>
 		</index>
 		<index>
@@ -1669,7 +1676,7 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="da">Materialetype (enkeltord)</title>
 			<title lang="en">Material type (term)</title>
 			<map>
-				<name set="term">type</name>
+				<name set="term" filter="1">type</name>
 			</map>
 		</index>
 		<index>
