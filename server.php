@@ -164,7 +164,9 @@ class openSearch extends webServiceServer {
     $this->cql2solr = new SolrQuery($this->cql_file, $this->config, $this->query_language);
     $solr_query = $this->cql2solr->cql_2_edismax($param->query->_value);
     if ($solr_query['error']) {
-      $error = $solr_query['error'];
+      foreach (array('no' => '', 'description' => ': ', 'details' => '(', 'pos' => ') at pos ') as $tag => $txt) {
+        $error .= $txt . $solr_query['error'][0][$tag];
+      }
       return $ret_error;
     }
     if (!$solr_query['operands']) {
@@ -1651,7 +1653,11 @@ class openSearch extends webServiceServer {
   /** \brief fetch hit count for each register in a given list
    *
    */
-  private function get_register_freqency($q, $registers, $filter) {
+  private function get_register_freqency($eq, $registers, $filter) {
+    $q = implode(' and ', $eq['q']);
+    foreach ($eq['fq'] as $fq) {
+      $filter .= '&fq=' . rawurlencode($fq);
+    }
     foreach ($registers as $reg_name => $reg_value) {
       $solr_urls[]['url'] = $this->repository['solr'] .  
                             '?q=' . $reg_value . ':(' . urlencode($q) .  ')&fq=' . $filter .  '&start=1&rows=0&wt=phps';
@@ -1668,9 +1674,13 @@ class openSearch extends webServiceServer {
   /** \brief build a solr url from a variety of parameters (and an url for debugging)
    *
    */
-  private function create_solr_url($q, $start, $rows, $sort, $rank, $facets, $filter, $boost, $debug, $collapsing) {
+  private function create_solr_url($eq, $start, $rows, $sort, $rank, $facets, $filter, $boost, $debug, $collapsing) {
     if ($collapsing) {
       $collaps_pars = '&group=true&group.ngroups=true&group.facet=true&group.field=' . $collapsing;
+    }
+    $q = implode(' and ', $eq['q']);
+    foreach ($eq['fq'] as $fq) {
+      $filter .= '&fq=' . rawurlencode($fq);
     }
     $url = $this->repository['solr'] .
                     '?q=' . urlencode($q) .
