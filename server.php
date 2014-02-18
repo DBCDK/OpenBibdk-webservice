@@ -162,7 +162,7 @@ class openSearch extends webServiceServer {
       $this->query_language = $param->queryLanguage->_value;
     }
     $this->cql2solr = new SolrQuery($this->cql_file, $this->config, $this->query_language);
-    $solr_query = $this->cql2solr->cql_2_edismax($param->query->_value);
+    $solr_query = $this->cql2solr->parse($param->query->_value);
     if ($solr_query['error']) {
       foreach (array('no' => '', 'description' => ': ', 'details' => '(', 'pos' => ') at pos ') as $tag => $txt) {
         $error .= $txt . $solr_query['error'][0][$tag];
@@ -180,7 +180,8 @@ class openSearch extends webServiceServer {
 
     if ($this->query_language == 'bestMatch') {
       $sort_q .= '&mm=1';
-      foreach ($solr_query['best_match'] as $key => $val) {
+      $solr_query['edismax'] = $solr_query['best_match'];
+      foreach ($solr_query['best_match']['sort'] as $key => $val) {
         $sort_q .= '&' . $key . '=' . urlencode($val);
         $best_match_debug->$key->_value = $val;
       }
@@ -419,7 +420,7 @@ class openSearch extends webServiceServer {
             $chk_query['edismax'] =  $add_q;
           }
           else {
-            $chk_query = $this->cql2solr->cql_2_edismax($param->query->_value);
+            $chk_query = $this->cql2solr->parse($param->query->_value);
             if ($add_query) {
               $chk_query['edismax'] =  '(' . $chk_query['edismax'] . ') ' . AND_OP . ' ' . $add_q;
             }
@@ -747,7 +748,7 @@ class openSearch extends webServiceServer {
       $id_array[] = $fpid->_value;
     }
     $this->cql2solr = new SolrQuery($this->cql_file, $this->config);
-    $chk_query = $this->cql2solr->cql_2_edismax('rec.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
+    $chk_query = $this->cql2solr->parse('rec.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
     $solr_q = $this->repository['solr'] .
               '?wt=phps' .
               '&q=' . urlencode($chk_query['edismax']) .
@@ -833,7 +834,7 @@ class openSearch extends webServiceServer {
           $add_fl .= ',' . $f['format_name'];
         }
       }
-      $chk_query = $this->cql2solr->cql_2_edismax('unit.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
+      $chk_query = $this->cql2solr->parse('unit.id=(' . implode($id_array, ' ' . OR_OP . ' ') . ')');
       $solr_q = $this->repository['solr'] .
                 '?wt=phps' .
                 '&q=' . urlencode($chk_query['edismax']) .
