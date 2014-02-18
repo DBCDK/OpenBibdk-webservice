@@ -418,6 +418,8 @@ action[getObject][] = trackingId
 ;showinfo[] = </pre>
 
 [howru]
+; only need to set server name if you want to override $_SERVER['SERVER_NAME']
+; server_name = some-server.dk
 test[] = search&query=danmark&stepValue=1
 preg_match[] = hitCount
 error[] = ERROR searching for danmark
