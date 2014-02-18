@@ -65,7 +65,7 @@
 					</xsl:for-each>
 				</table>
                 <br />
-				<div>Aliases</div>
+				<div>Aliases (short forms)</div>
                 <br />
 				<table border="1" cellspacing="0">
 					<tr>
