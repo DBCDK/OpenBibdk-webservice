@@ -164,7 +164,7 @@ class openSearch extends webServiceServer {
     $this->cql2solr = new SolrQuery($this->cql_file, $this->config, $this->query_language);
     $solr_query = $this->cql2solr->parse($param->query->_value);
     if ($solr_query['error']) {
-      foreach (array('no' => '|: ', 'description' => '', 'details' => '(|)', 'pos' => ' at pos ') as $tag => $txt) {
+      foreach (array('no' => '|: ', 'description' => '', 'details' => ' (|)', 'pos' => ' at pos ') as $tag => $txt) {
         list($pre, $post) = explode('|', $txt);
         if ($solr_query['error'][0][$tag]) {
           $error .= $pre . $solr_query['error'][0][$tag]. $post;
