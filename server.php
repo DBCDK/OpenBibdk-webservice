@@ -172,7 +172,7 @@ class openSearch extends webServiceServer {
       }
       return $ret_error;
     }
-    if (!$solr_query['operands']) {
+    if (!count($solr_query['operands'])) {
       $error = 'Error: No query found in request';
       return $ret_error;
     }
