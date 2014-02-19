@@ -1683,7 +1683,7 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="da">Overordnet materialekategori (enkeltord)</title>
 			<title lang="en">Type category (term)</title>
 			<map>
-				<name set="term">typeCategory</name>
+				<name set="term" filter="1">typeCategory</name>
 			</map>
 		</index>
 		<index>
