@@ -1205,7 +1205,7 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="da">Titel</title>
 			<map>
 				<name set="dkcclterm">ti</name>
-				<alias>ti</alias>
+				<alias slop="20">ti</alias>
 			</map>
 		</index>
 		<index>
@@ -1690,7 +1690,7 @@ You should have received a copy of the GNU Affero General Public License along w
 			<title lang="da">Værktype (enkeltord)</title>
 			<title lang="en">Work type (term)</title>
 			<map>
-				<name set="term">workType</name>
+				<name set="term" filter="1">workType</name>
 			</map>
 		</index>
 	</indexInfo>
