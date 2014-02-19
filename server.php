@@ -83,9 +83,6 @@ class openSearch extends webServiceServer {
 
     // check for unsupported stuff
     $ret_error->searchResponse->_value->error->_value = &$unsupported;
-    if ($param->queryFilter->_value) {
-      $param->query->_value .= ($param->queryLanguage->_value == 'cqldan' ? ' OG ' : ' AND ') . $param->queryFilter->_value;
-    }
     if (empty($param->query->_value)) {
       $unsupported = 'Error: No query found in request';
     }
