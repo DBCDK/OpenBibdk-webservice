@@ -42,7 +42,7 @@ url_override[ShowInfo] = ShowInfo
 url_override[Version] = Version
 url_override[HowRU] = HowRU
 url_override[RegressionTest] = RegressionTest
-; diffCqlFileWithSolr - use &repository= in url if set
+; diffCqlFileWithSolr - use &repository= in url if set. Used luke setting below to obtain solr info
 url_override[diffCqlFileWithSolr] = diffCqlFileWithSolr
 
 ; prefixes and namespaces
@@ -103,6 +103,10 @@ fedora[get_datastreams] = %s/datastreams?format=xml
 
 repository[@REPOSITORY_NAME@][solr] = @SOLR@
 repository[@REPOSITORY_NAME@][fedora] = @FEDORA@
+
+; info to find available index for at solr repos.
+; luke[from] = to will replace from with to in the solr-uri
+luke[select] = admin/luke?wt=json
 
 ; memcache
 cache_host = localhost
